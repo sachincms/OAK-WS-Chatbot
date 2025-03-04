@@ -6,7 +6,7 @@ from config import *
 sys.path.append(os.path.abspath(os.path.dirname(__file__)))
 from utils.chat import qa_chat2, stream_data
 from utils.image_processing import display_images
-from utils.files_processing import load_string_from_textfile
+from utils.files_processing import load_dict_from_json
 import warnings
 warnings.simplefilter("ignore", ResourceWarning)
 import asyncio
@@ -23,7 +23,7 @@ logging.basicConfig(
 )
 
 st.set_page_config(
-    page_title="KAWACH Chatbot",
+    page_title="OAK chatbot",
     page_icon=BAT_LOGO_PATH,
     layout="wide",
     initial_sidebar_state="collapsed",
@@ -40,15 +40,15 @@ except RuntimeError:
     pass
 
 
-if "bat_data" not in st.session_state:
-    st.session_state["bat_data"] = None
+if "oak_data" not in st.session_state:
+    st.session_state["oak_data"] = None
 
 if "chat_history" not in st.session_state:
     st.session_state["chat_history"] = []
 
-if st.session_state["bat_data"] is None:
-    with st.spinner("Loading pdf data...."):
-        text = load_string_from_textfile(filepath = "data/bat_pdf_text.txt")
+if st.session_state["oak_data"] is None:
+    with st.spinner("Loading excel data...."):
+        text = load_dict_from_json(filepath = "data/oak_excel_dict.json")
         st.session_state["bat_data"] = text
 
 if "chat_container" not in st.session_state:
@@ -91,7 +91,7 @@ for chat in st.session_state["chat_history"]:
 
 if st.session_state["chat_history"][-1]["role"] != "assistant":
     try:
-        response = qa_chat2(text = st.session_state["bat_data"], query = query)
+        response = qa_chat(text = st.session_state["bat_data"], query = query)
         answer = response["answer"]
         source = response["source"]
         full_response = f"\n{answer}\n\n**Source:** {source}"
