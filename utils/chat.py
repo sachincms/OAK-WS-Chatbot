@@ -50,7 +50,7 @@ def create_chat_engine(vector_index: VectorStoreIndex):
    return chat_engine
 
 
-def qa_chat(chat_engine, query: str) -> str:
+def qa_chat_pdf(chat_engine, query: str) -> str:
    
     '''
   This functions returns the answer & source of the answer to a question
@@ -86,6 +86,46 @@ def qa_chat(chat_engine, query: str) -> str:
         answer = None
         source_dict = None
         return answer, source_dict
+
+
+def qa_chat_excel(chat_engine, query: str) -> dict:
+  '''
+  This functions initiations the questions-answering & stoes it as a tuple in a list
+  Args:
+     chat engine, chat history
+  Returns:
+    chat history containing all questions and answers along with their sources & stores as a dictionary
+  '''
+  d = {}
+
+  result = chat_engine.chat(query)
+  d["query"] = query
+  answer = result.response
+  source_nodes = result.source_nodes
+  faithfulness = check_faithfulness(query, result)
+  relevancy = check_relevancy(query, result)
+
+  source_dict = {}
+  scores = []
+
+  for i in range(0, len(source_nodes)):
+    source_file = source_nodes[i].metadata["file_name"]
+    scores.append(source_nodes[i].score)
+
+    if source_file not in source_dict:
+      source_dict[source_file] = []
+
+    source_sheet = source_nodes[i].metadata["sheet"]
+    if source_sheet not in source_dict[source_file]:
+      source_dict[source_file].append(source_sheet)
+
+  scores = np.array(scores)
+  if scores.mean() >= 0.5 and faithfulness and relevancy:
+      return answer, source_dict
+  else:
+      answer = None
+      source_dict = None
+      return answer, source_dict
     
 
 
@@ -148,7 +188,7 @@ def split_answer_and_sources(text: str) -> Tuple[str, str]:
   return final_answer, final_source
 
 
-def qa_chat2(text: str, query: str) -> dict:
+def qa_chat_with_prompt(text: str, query: str) -> dict:
   '''
   This function returns a dictionary containing answer & source
   Args:
