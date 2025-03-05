@@ -19,16 +19,16 @@ The program works across Bihar, Uttar Pradesh, West Bengal, and Rajasthan, stren
 By collaborating with local NGOs and government bodies, KAWACH aligns with India’s Mission Vatsalya to create safer childhoods.
 """
 INTRO_MARKDOWN = """
-<p>Ask anything about KAWACH:</p>
+<p>Ask anything about OAK:</p>
 <ul>
-<li>What are the key findings on child trafficking?</li>
-<li>How does KAWACH support child protection laws?</li>
-<li>Which organisations are implementing the program?</li>
+<li>Question 1</li>
+<li>Question 2</li>
+<li>Question 3</li>
 <strong>Powered by real data & reports. Available anytime.</strong>
 """
 
-DEFAULT_QUERY = "What is the KAWACH program about?"
-DEFAULT_QUERY_RESPONSE = "The KAWACH program is a 10-year child protection initiative launched by the British Asian Trust (BAT) and other partners in June 2022. Its ambitious goal is to achieve a 30% reduction in child labor, child trafficking, child marriage, and commercial sexual exploitation of children, as well as a 50% reduction in online child sexual abuse and exploitation in high-prevalence states. The program aims to transform the child protection system by creating a comprehensive prevention model to establish a secure ecosystem, mitigate vulnerabilities, and bolster the prosecution of traffickers and exploiters. This involves building and strengthening systems from grassroots to state levels, preventing vulnerable children from cycles of exploitation, and leveraging data and evidence to guide decision-making, track progress, and refine strategies."
-DEFAULT_RESPONSE_SOURCE = "About the program section of the Inception Report. Foreword section of the FINAL REPORT"
+DEFAULT_QUERY = "What specific program activities, such as trade meetings and SSK camps, may have contributed to the change in behavior of the members towards accessing their PF benefits?"
+DEFAULT_QUERY_RESPONSE = "Trade meetings and SSK camps may have contributed to the change in behavior of the members towards accessing their PF benefits by raising awareness about the importance of knowing their UAN numbers.  After awareness sessions and camps on PF, members collectively approached mahajans for their UAN numbers."
+DEFAULT_RESPONSE_SOURCE = 'The section describing the experience of women unorganized sector workers in Raghunathganj II states: "In Raghunathganj II beedi members are entitled to PF benefit but one major concern that came up while accessing PF benefits were that the members were not aware of their UAN no. due to which there were not able to access their PF accounts when needed. After awareness sessions and camps on PF, Members collectively approached mahajans for UAN no."'
 DEFAULT_FINAL_RESPONSE = f"\n{DEFAULT_QUERY_RESPONSE}\n\n**Source:** {DEFAULT_RESPONSE_SOURCE}"
 ERROR_MESSAGE = "An error occurred while processing your request. Please try again later."
