@@ -49,7 +49,7 @@ if "chat_history" not in st.session_state:
 if st.session_state["oak_data"] is None:
     with st.spinner("Loading excel data...."):
         text = load_dict_from_json(file_path = "data/oak_excel_dict.json")
-        st.session_state["bat_data"] = text
+        st.session_state["oak_data"] = text
 
 if "chat_container" not in st.session_state:
     st.session_state.chat_container = st.container()
