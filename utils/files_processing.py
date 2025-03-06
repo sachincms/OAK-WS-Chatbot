@@ -6,8 +6,11 @@ import llama_index
 import pandas as pd
 import json
 from datetime import datetime
+import gspread
+from gspread_dataframe import get_as_dataframe
+from oauth2client.service_account import ServiceAccountCredentials
 from dotenv import load_dotenv
-
+import logging
 
 
 def custom_serializer(obj):
@@ -51,97 +54,94 @@ def load_dict_from_json(file_path: str) -> dict:
 
 ################################################ EXCEL PROCESSING ##################################################################################
 
-def get_all_sheet_names(file_path: str) -> List[str]:
+def authenticate_gspread(gdrive_credentials_path: str) -> gspread.client.Client:
+  """Authenticate with Google Sheets using the service account JSON key."""
+  scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
+  creds = ServiceAccountCredentials.from_json_keyfile_name(gdrive_credentials_path, scope)
+  client = gspread.authorize(creds)
+  return client
+
+
+def get_all_sheet_names(spreadsheet_id: str, 
+                        client: gspread.client.Client) -> List[str]:
   '''
   This function returns all sheet names in a given excel file
   Args:
-    file path
+    spreadsheet id, client
   Returns:
     list containing all sheet names
-    '''
-  xls = pd.ExcelFile(file_path)
-  sheet_names = xls.sheet_names
-  return sheet_names
+  '''
+  spreadsheet = client.open_by_key(spreadsheet_id)
+  return [sheet.title for sheet in spreadsheet.worksheets()]
 
-def get_single_sheet_inside_excel(file_path: str, sheet_name: str):
+
+def get_single_sheet_from_spreadsheet(spreadsheet_id: str, 
+                                      sheet_name: str, 
+                                      client: gspread.client.Client):
   '''
   This function returns the dataframe from execl file & a given sheet
   Args:
-    file path, sheet name
+    spreadsheet id, sheet name, client
   Returns:
     dataframe of that given sheet
-    '''
-  df = pd.read_excel(file_path, sheet_name)
-  columns_to_be_dropped = [col for col in df.columns if col.startswith("Unnamed")]
-  df = df.drop(columns_to_be_dropped, axis = 1)
-  return df
+  '''
+  spreadsheet = client.open_by_key(spreadsheet_id)
+  worksheet = spreadsheet.worksheet(sheet_name)
+  df = get_as_dataframe(worksheet, evaluate_formulas=True, header=0)
+  return df.dropna(how="all")  # Drop empty rows
 
 
 ################################################ FOR CHAT PROMPT TEMPLATE ##################################################################################
 
-def convert_the_excel_file_into_dict(excel_file_path: str,
-                                     json_file_path: str) -> dict:
+def convert_the_excel_file_into_dict(spreadsheet_id: str,
+                                     json_file_path: str,
+                                     gdrive_credentials_path: str) -> dict:
   '''
-  This function converts the entire excel file in a dict. 
+  This function converts the entire excel file in a dict.
   Also checks the current json file & only adds new sheets which aren't present in the current json file
   Args:
-    excel file path, json file path
+    spreadsheet id, json file path, gdrive credentials path
   Returns:
     dictionary containing keys as sheet names & values as a dictionary of dataframe
   '''
+  client = authenticate_gspread(gdrive_credentials_path)
 
   #load the current json file
-  current_dict = load_dict_from_json(json_file_path)
-  current_sheet_names = current_dict.keys()
+  if os.path.exists(json_file_path):
+    try:
+      current_dict = load_dict_from_json(json_file_path)
+      current_sheet_names = current_dict.keys()
+    except Exception:
+      logging.info("Error reading JSON file. Initilazing as empty")
+      current_dict = {}
+      current_sheet_names = set()
+  else:
+    logging.info("JSON file does not exist. Extracting all sheets....")
+    current_dict = {}
+    current_sheet_names = set()
 
 
   #get all sheet names
-  sheet_names = get_all_sheet_names(excel_file_path)
-  
+  sheet_names = get_all_sheet_names(spreadsheet_id, client)
+
   #find the new sheets
   new_sheets = [sheet for sheet in sheet_names if sheet not in current_sheet_names]
-  print(f"New sheets to add: {len(new_sheets)}")
+  logging.info(f"New sheets to add: {len(new_sheets)}")
 
   #iterate through all sheets & convert each sheet into dictionary of records
   for sheet in new_sheets:
-    print(f"Preprocessing sheet: {sheet}")
+    logging.info(f"Preprocessing sheet: {sheet}")
     try:
-      df = get_single_sheet_inside_excel(excel_file_path, sheet)
+      df = get_single_sheet_from_spreadsheet(spreadsheet_id, sheet)
       dict_ = df.to_dict(orient = "records")
       current_dict[sheet] = dict_
     except Exception as e:
-      print(f"Error in sheet: {sheet}. Error: {e}.\nMoving on to the next one.....")
+      logging.info(f"Error in sheet: {sheet}. Moving on to the next one.....")
 
   return current_dict
   
 
-################################################ FOR LLAMAINDEX DOCUMENTS ##################################################################################
 
-def convert_dataframe_into_dict_and_llamaindex_docs(file_path: str,
-                                                    sheet_name: str) -> Tuple[List[dict], List[llama_index.core.schema.Document]]:
-    '''
-    This function converts the single sheet inside excel file into dictionary records (for chat prompt) & llamaindex documents (for embeddings)
-    Args:
-      file path, sheet name
-    Returns:
-      dictionary records (for chat prompt) & llamaindex documents (for embeddings)
-    '''
-    df = get_single_sheet_inside_excel(file_path, sheet_name)
-
-    #this is for Gemini prompt
-    dict_ = df.to_dict(orient = "records")
-
-    #this is for LlamaIndex documents & OpenAI
-    documents = []
-    for entry in dict_:
-      cleaned_entry = {k.strip(): v.strip() if isinstance(v, str) else v for k, v in entry.items()}
-      text = "\n".join(f"{key}:{value}" for key, value in cleaned_entry.items())
-      doc = Document(text=text)
-      doc.metadata = {"file_name": os.path.basename(file_path),
-                     "sheet": sheet_name}
-      documents.append(doc)
-
-    return dict_, documents
 
 
 
