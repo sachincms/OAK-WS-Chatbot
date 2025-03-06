@@ -21,9 +21,9 @@ By collaborating with local NGOs and government bodies, KAWACH aligns with India
 INTRO_MARKDOWN = """
 <p>Ask anything about OAK:</p>
 <ul>
-<li>Question 1</li>
-<li>Question 2</li>
-<li>Question 3</li>
+<li>Which of the following is a source of information for assessing partners' challenges?</li>
+<li>Which metric is used to assess the likelihood of shared outcomes being sustained over time?</li>
+<li>How can proxies be used to evaluate shared outcomes across organizations working in the same geography?</li>
 <strong>Powered by real data & reports. Available anytime.</strong>
 """
 
