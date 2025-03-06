@@ -12,6 +12,11 @@ LOGO_STYLE_HTML = os.path.join(current_file_path, "static",  "html", "logo_style
 
 BAT_LOGO_PATH = os.path.join(current_file_path, "static",  "images", "BAT.png")
 CMS_LOGO_PATH = os.path.join(current_file_path, "static",  "images", "CMS.png")
+
+SPREADSHEET_ID = "1Kos77QNUOKyVIzTkRsws2KCuWAJAnk2vsL1GKhSwgjU"
+JSON_FILE_PATH = os.path.join(current_file_path, "data", "oak_excel_dict.json")
+GOOGLE_DRIVE_CREDENTIALS_PATH = os.getenv("GOOGLE_DRIVE_CREDENTIALS_PATH")
+
 INTRO_MESSAGE = """
 India has over 172 million children at risk of harm, despite strong child protection laws. 
 To tackle this, COF-KAWACH—a 10-year initiative by the British Asian Trust (BAT) and its partners—was launched in June 2022. 
