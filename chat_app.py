@@ -6,7 +6,7 @@ from config import *
 sys.path.append(os.path.abspath(os.path.dirname(__file__)))
 from utils.chat import qa_chat_with_prompt, stream_data
 from utils.image_processing import display_images
-from utils.files_processing import load_dict_from_json
+from utils.files_processing import load_dict_from_json, convert_the_excel_file_into_dict
 import warnings
 warnings.simplefilter("ignore", ResourceWarning)
 import asyncio
@@ -15,6 +15,8 @@ import uuid
 from streamlit.web.server.websocket_headers import _get_websocket_headers
 from traceloop.sdk import Traceloop
 import json
+
+
 
 logging.basicConfig(
     level=logging.INFO,
@@ -48,7 +50,9 @@ if "chat_history" not in st.session_state:
 
 if st.session_state["oak_data"] is None:
     with st.spinner("Loading excel data...."):
-        text = load_dict_from_json(file_path = "data/oak_excel_dict.json")
+        text = convert_the_excel_file_into_dict(spreadsheet_id = SPREADSHEET_ID,
+                                                json_file_path = JSON_FILE_PATH,
+                                                gdrive_credentials_path = GOOGLE_DRIVE_CREDENTIALS_PATH)
         st.session_state["oak_data"] = text
 
 if "chat_container" not in st.session_state:
