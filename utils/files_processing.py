@@ -10,8 +10,9 @@ import gspread
 from gspread_dataframe import get_as_dataframe
 from oauth2client.service_account import ServiceAccountCredentials
 from dotenv import load_dotenv
-import logging
+from logging_config import get_logger
 
+logger = get_logger(__name__)
 
 def custom_serializer(obj):
     """
@@ -112,11 +113,11 @@ def convert_the_excel_file_into_dict(spreadsheet_id: str,
       current_dict = load_dict_from_json(json_file_path)
       current_sheet_names = current_dict.keys()
     except Exception:
-      logging.info("Error reading JSON file. Initilazing as empty")
+      logger.warning("Error reading JSON file. Initilazing as empty")
       current_dict = {}
       current_sheet_names = set()
   else:
-    logging.info("JSON file does not exist. Extracting all sheets....")
+    logger.warning("JSON file does not exist. Extracting all sheets....")
     current_dict = {}
     current_sheet_names = set()
 
@@ -126,18 +127,18 @@ def convert_the_excel_file_into_dict(spreadsheet_id: str,
 
   #find the new sheets
   new_sheets = [sheet for sheet in sheet_names if sheet not in current_sheet_names]
-  logging.info(f"New sheets to add: {len(new_sheets)}")
+  logger.info(f"New sheets to add: {len(new_sheets)}")
 
   #iterate through all sheets & convert each sheet into dictionary of records
   for sheet in new_sheets:
-    logging.info(f"Preprocessing sheet: {sheet}")
+    logger.info(f"Preprocessing sheet: {sheet}")
     try:
       df = get_single_sheet_from_spreadsheet(spreadsheet_id, sheet)
       dict_ = df.to_dict(orient = "records")
       current_dict[sheet] = dict_
     except Exception as e:
-      logging.info(f"Error in sheet: {sheet}. Moving on to the next one.....")
-
+      logger.error(f"Error in sheet: {sheet}. Moving on to the next one.....")
+        
   return current_dict
   
 
