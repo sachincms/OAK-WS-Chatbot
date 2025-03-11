@@ -16,23 +16,34 @@ import re
 from typing import Tuple
 from dotenv import load_dotenv
 import time
+from requests.exceptions import HTTPError
+from logging_config import get_logger
 
 
 load_dotenv()
 nest_asyncio.apply()
 
-OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
-if OPENAI_API_KEY:
-    os.environ["OPENAI_API_KEY"] = OPENAI_API_KEY
-else:
-    raise ValueError("OPENAI_API_KEY is not set. Please provide a valid API key.")
+logger = get_logger(__name__)
 
 
-GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
-if GOOGLE_API_KEY:
-   os.environ["GOOGLE_API_KEY"] = GOOGLE_API_KEY
-else:
-   raise ValueError("GOOGLE_API_KEY is not set. Please provide a valid API key.")
+def switch_google_api_key(current_index: int):
+   """
+    Switch to the next API key in the list.
+    Args:
+        current_index (int): The index of the current API key.
+    Returns:
+        int: The new API key index.
+    Raises:
+        IndexError: If all API keys have been exhausted.
+    """
+   new_index = current_index + 1
+   if new_index >= len(GOOGLE_API_KEYS):
+      raise IndexError("All API keys are exhausted")
+   
+   new_key = GOOGLE_API_KEYS[new_index]
+   os.environ["GOOGLE_API_KEY"] = new_key
+   logger.warning(f"{GOOGLE_API_KEYS[current_index]} rate limit exceeded. Switching to {new_key}")
+   return new_index
    
 
 
@@ -198,23 +209,37 @@ def qa_chat_with_prompt(text: str, query: str) -> dict:
   '''
   messages = convert_query_into_chat_message(text = text, 
                                            query = query)
-  llm = Gemini(model="models/gemini-1.5-flash")
-  resp = llm.chat(messages)  #llama_index.core.base.llms.types.ChatResponse
+  current_index = 0
+  os.environ["GOOGLE_API_KEY"] = GOOGLE_API_KEYS[current_index]
+  while True: 
+     try:
+        llm = Gemini(model="models/gemini-1.5-flash")
+        resp = llm.chat(messages)  #llama_index.core.base.llms.types.ChatResponse
 
-  result_text = resp.message.blocks[0].text
+        result_text = resp.message.blocks[0].text
 
-  d = {}
-  d["query"] = query
+        d = {}
+        d["query"] = query
 
-  if "Source:" in result_text:
-    answer, source = split_answer_and_sources(result_text)
-    d["answer"] = answer
-    d["source"] = source
-  else:
-    d["answer"] = result_text
-    d["source"] = None
+        if "Source:" in result_text:
+          answer, source = split_answer_and_sources(result_text)
+          d["answer"] = answer
+          d["source"] = source
+        else:
+          d["answer"] = result_text
+          d["source"] = None
 
-  return d
+        return d
+     
+     except HTTPError as e:
+        if e.response.status_code == 429:
+            try:
+              current_index = switch_google_api_key(current_index)
+              time.sleep(2)
+            except IndexError:
+               raise ValueError("All API keys are exhausted or invalid")
+        else:
+           raise e
 
 def stream_data(response):
     for word in response.split(" "):
