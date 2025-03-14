@@ -56,7 +56,7 @@ def create_chat_engine(vector_index: VectorStoreIndex):
   Returns:
     chat engine (current based on OpenAI)
   '''
-   llm = OpenAI(model = MODEL_NAME)
+   llm = OpenAI(model = OPENAI_MODEL_NAME)
    chat_engine = vector_index.as_chat_engine(chat_mode = "best", llm = llm, verbose = True)
    return chat_engine
 
@@ -213,7 +213,7 @@ def qa_chat_with_prompt(text: str, query: str) -> dict:
   os.environ["GOOGLE_API_KEY"] = GOOGLE_API_KEYS[current_index]
   while True: 
      try:
-        llm = Gemini(model="models/gemini-1.5-flash")
+        llm = Gemini(model = GEMINI_MODEL_NAME)
         resp = llm.chat(messages)  #llama_index.core.base.llms.types.ChatResponse
 
         result_text = resp.message.blocks[0].text
