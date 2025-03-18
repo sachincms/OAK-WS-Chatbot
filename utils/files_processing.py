@@ -94,7 +94,7 @@ def get_single_sheet_from_spreadsheet(spreadsheet_id: str,
 
 ################################################ FOR CHAT PROMPT TEMPLATE ##################################################################################
 
-def convert_the_excel_file_into_dict(spreadsheet_id: str,
+def convert_excel_to_dict(spreadsheet_id: str,
                                      json_file_path: str,
                                      gdrive_credentials_path: str) -> dict:
   '''
@@ -140,15 +140,3 @@ def convert_the_excel_file_into_dict(spreadsheet_id: str,
       logger.error(f"Error in sheet: {sheet}. Moving on to the next one.....")
         
   return current_dict
-  
-
-
-
-
-
-
-
-
-
-
-
