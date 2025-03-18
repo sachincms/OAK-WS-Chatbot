@@ -1,7 +1,8 @@
 import os
 
-# EMBEDDING_MODEL = "text-embedding-3-small"
-# MODEL_NAME = "gpt-3.5-turbo"
+# OPENAI_EMBEDDING_MODEL = "text-embedding-3-small"
+# OPENAI_MODEL_NAME = "gpt-3.5-turbo"
+GEMINI_MODEL_NAME = "models/gemini-2.0-flash"
 EMBED_DIMENSION = 512
 CHUNK_SIZE = 1024
 CHUNK_OVERLAP = 50
@@ -16,6 +17,15 @@ CMS_LOGO_PATH = os.path.join(current_file_path, "static",  "images", "CMS.png")
 SPREADSHEET_ID = "1Kos77QNUOKyVIzTkRsws2KCuWAJAnk2vsL1GKhSwgjU"
 JSON_FILE_PATH = os.path.join(current_file_path, "data", "oak_excel_dict.json")
 GOOGLE_DRIVE_CREDENTIALS_PATH = os.getenv("GOOGLE_DRIVE_CREDENTIALS_PATH")
+
+GOOGLE_API_KEY_1 = os.getenv("GOOGLE_API_KEY_1")
+GOOGLE_API_KEY_2 = os.getenv("GOOGLE_API_KEY_2")
+GOOGLE_API_KEYS = [GOOGLE_API_KEY_1, GOOGLE_API_KEY_2]
+
+
+
+
+LOGS_DIRECTORY = os.path.join(current_file_path, "logs")
 
 INTRO_MESSAGE = """
 India has over 172 million children at risk of harm, despite strong child protection laws. 
