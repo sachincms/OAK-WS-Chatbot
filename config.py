@@ -14,16 +14,13 @@ LOGO_STYLE_HTML = os.path.join(current_file_path, "static",  "html", "logo_style
 OAK_LOGO_PATH = os.path.join(current_file_path, "static",  "images", "Oak.png")
 CMS_LOGO_PATH = os.path.join(current_file_path, "static",  "images", "CMS.png")
 
-SPREADSHEET_ID = "1Kos77QNUOKyVIzTkRsws2KCuWAJAnk2vsL1GKhSwgjU"
+SPREADSHEET_ID = os.getenv("SPREADSHEET_ID")
 JSON_FILE_PATH = os.path.join(current_file_path, "data", "phase1.json")
 GOOGLE_DRIVE_CREDENTIALS_PATH = os.getenv("GOOGLE_DRIVE_CREDENTIALS_PATH")
 
 GOOGLE_API_KEY_1 = os.getenv("GOOGLE_API_KEY_1")
 GOOGLE_API_KEY_2 = os.getenv("GOOGLE_API_KEY_2")
 GOOGLE_API_KEYS = [GOOGLE_API_KEY_1, GOOGLE_API_KEY_2]
-
-
-
 
 LOGS_DIRECTORY = os.path.join(current_file_path, "logs")
 
