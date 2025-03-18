@@ -6,7 +6,7 @@ from config import *
 sys.path.append(os.path.abspath(os.path.dirname(__file__)))
 from utils.chat import qa_chat_with_prompt, stream_data
 from utils.image_processing import display_images
-from utils.files_processing import load_dict_from_json, convert_the_excel_file_into_dict
+from utils.files_processing import load_dict_from_json, convert_excel_to_dict
 import warnings
 warnings.simplefilter("ignore", ResourceWarning)
 import asyncio
@@ -50,7 +50,7 @@ if "chat_history" not in st.session_state:
 
 if st.session_state["oak_data"] is None:
     with st.spinner("Loading excel data...."):
-        # text = convert_the_excel_file_into_dict(spreadsheet_id = SPREADSHEET_ID,
+        # text = convert_excel_to_dict(spreadsheet_id = SPREADSHEET_ID,
         #                                         json_file_path = JSON_FILE_PATH,
         #                                         gdrive_credentials_path = GOOGLE_DRIVE_CREDENTIALS_PATH)
         text = json.load(open(JSON_FILE_PATH, "r"))
