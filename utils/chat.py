@@ -164,6 +164,7 @@ def convert_query_into_chat_message(text: str, query: str) -> List[llama_index.c
       "When answering, please provide relevant supporting details and cite the specific part of the context where the answer is derived from."
       "Try to rephrase or summarize the relevant supporting details in your answer instead of using the exact same wording as present in the context."
       "Make sure your answer responds to the query being asked and does not contain irrelevant information or spelling mistakes."
+      "Your answer should be concise and to the point while including all necessary details."
       "Please provide the answer in the following format:\n"
       "Answer: <Your answer here>\n"
       "Source: <Reference to relevant part of the context>"
