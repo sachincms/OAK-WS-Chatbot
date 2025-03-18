@@ -15,7 +15,7 @@ OAK_LOGO_PATH = os.path.join(current_file_path, "static",  "images", "Oak.png")
 CMS_LOGO_PATH = os.path.join(current_file_path, "static",  "images", "CMS.png")
 
 SPREADSHEET_ID = "1Kos77QNUOKyVIzTkRsws2KCuWAJAnk2vsL1GKhSwgjU"
-JSON_FILE_PATH = os.path.join(current_file_path, "data", "oak_excel_dict.json")
+JSON_FILE_PATH = os.path.join(current_file_path, "data", "phase1.json")
 GOOGLE_DRIVE_CREDENTIALS_PATH = os.getenv("GOOGLE_DRIVE_CREDENTIALS_PATH")
 
 GOOGLE_API_KEY_1 = os.getenv("GOOGLE_API_KEY_1")
