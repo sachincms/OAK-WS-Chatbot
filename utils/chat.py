@@ -151,17 +151,25 @@ def convert_query_into_chat_message(text: str, query: str) -> List[llama_index.c
   '''
   
   template = (
-      "We have provided context information below. \n"
-      "---------------------\n"
+      "The following text consists of some context, a question and some instructions. Use the context to answer the question and follow the instructions while doing so."
+      "\n----------- Start of Context ----------\n"
       "{context_str}"
-      "\n---------------------\n"
-      "Given this information, please answer the question: {query_str}\n"
+      "\n---------- End of Context -----------\n"
+
+      "\n----------- Start of Question ----------\n"
+      "{query_str}"
+      "\n----------- End of Question ----------\n"
+
+      "\n----------- Start of Instructions ----------\n"
       "When answering, please provide relevant supporting details and cite the specific part of the context where the answer is derived from."
+      "Try to rephrase or summarize the relevant supporting details in your answer instead of using the exact same wording as present in the context."
+      "Make sure your answer responds to the query being asked and does not contain irrelevant information or spelling mistakes."
       "Please provide the answer in the following format:\n"
       "Answer: <Your answer here>\n"
       "Source: <Reference to relevant part of the context>"
       "If answer is not found in the provided context then reply exactly with:\n"
       "'Answer not found from the given context provided.'"
+      "\n----------- End of Instructions ----------\n"
   )
   qa_template = PromptTemplate(template)
 
