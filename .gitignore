@@ -1,3 +1,5 @@
 .env
 __pycache__
 oak_venv
+
+data.py
