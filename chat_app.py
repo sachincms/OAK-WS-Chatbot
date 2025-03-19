@@ -19,8 +19,8 @@ import json
 
 logging.basicConfig(
     level=logging.INFO,
-    format="%(asctime)s %(name)s %(levelname)s %(message)s",
-    datefmt="%Y-%m-%d %H:%M:%S",
+    format='%(asctime)s - %(name)s - File: %(filename)s - %(levelname)s - %(message)s', 
+    datefmt='%d/%m/%Y %I:%M:%S %p',
 )
 
 st.set_page_config(
