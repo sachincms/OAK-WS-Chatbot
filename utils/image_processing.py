@@ -34,7 +34,7 @@ def img_to_html(img_path):
         logging.error(f'Error in img_to_html: {ex}')
         return None
 
-def display_images():
+def display_images(image_path_1: str, image_path_2: str):
     try:
         col1, col2 = st.columns(2)
 
@@ -42,11 +42,9 @@ def display_images():
             st.markdown(f.read(), unsafe_allow_html=True)
 
         with col1:
-            image_path_1 = os.path.join(os.getcwd(),'static', 'images', 'CMS.png')
             st.markdown(img_to_html(image_path_1), unsafe_allow_html=True)
         
         with col2:
-            image_path_2 = os.path.join(os.getcwd(),'static', 'images', 'Oak.png')
             st.markdown(img_to_html(image_path_2), unsafe_allow_html=True)
 
     except Exception as ex:
