@@ -16,7 +16,6 @@ from streamlit.web.server.websocket_headers import _get_websocket_headers
 from traceloop.sdk import Traceloop
 import json
 
-JSON_FILE_PATH = 'data/oak_excel_dict.json'
 
 logging.basicConfig(
     level=logging.INFO,
