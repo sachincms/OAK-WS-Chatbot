@@ -11,11 +11,16 @@ NODE_THRESHOLD = 0.5
 current_file_path = os.getcwd()
 LOGO_STYLE_HTML = os.path.join(current_file_path, "static",  "html", "logo_style.html")
 
-OAK_LOGO_PATH = os.path.join(current_file_path, "static",  "images", "Oak.png")
-CMS_LOGO_PATH = os.path.join(current_file_path, "static",  "images", "CMS.png")
+# OAK_LOGO_PATH = os.path.join(current_file_path, "static",  "images", "Oak.png")
+# CMS_LOGO_PATH = os.path.join(current_file_path, "static",  "images", "CMS.png")
+#TODO: Replace PNG with SVG
+SPF_LOGO_PATH = os.path.join(current_file_path, "static",  "images", "SPF.png")
+SWASTI_LOGO_PATH = os.path.join(current_file_path, "static",  "images", "Swasti.png") 
 
 SPREADSHEET_ID = os.getenv("SPREADSHEET_ID")
-JSON_FILE_PATH = os.path.join(current_file_path, "data", "phase1.json")
+PHASE1_JSON_FILE_PATH = os.path.join(current_file_path, "data", "phase1.json")
+PHASE2_JSON_FILE_PATH = os.path.join(current_file_path, "data", "phase2.json")
+ALL_PHASES_JSON_FILE_PATH = os.path.join(current_file_path, "data", "all_phases.json")
 GOOGLE_DRIVE_CREDENTIALS_PATH = os.getenv("GOOGLE_DRIVE_CREDENTIALS_PATH")
 
 GOOGLE_API_KEY_1 = os.getenv("GOOGLE_API_KEY_1")
