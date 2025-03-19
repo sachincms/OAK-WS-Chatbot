@@ -170,6 +170,7 @@ def convert_query_into_chat_message(text: str, query: str) -> List[llama_index.c
       "Please provide the answer in the following format:\n"
       "Answer: <Your answer here>\n"
       "Source: <Reference to relevant part of the context>"
+      "The source should be in plain text, not numbers or any other format. It should be concise and mentioned in few words."
       "If answer is not found in the provided context then reply exactly with:\n"
       "'Answer not found from the given context provided.'"
       "\n----------- End of Instructions ----------\n"
