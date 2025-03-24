@@ -23,7 +23,7 @@ logging.basicConfig(
 )
 
 st.set_page_config(
-    page_title="OAK chatbot",
+    page_title="SPF chatbot",
     page_icon=SPF_LOGO_PATH,
     layout="wide",
     initial_sidebar_state="collapsed",
@@ -58,7 +58,7 @@ if st.session_state["previous_context"] != context:
     ]
 
     st.info(f"Changed context from {st.session_state["previous_context"]} to {context}.")
-    
+
     st.session_state["previous_context"] = context
     
     file = context_options[context]
