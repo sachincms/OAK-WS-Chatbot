@@ -20,6 +20,7 @@ SWASTI_LOGO_PATH = os.path.join(current_file_path, "static",  "images", "Swasti.
 SPREADSHEET_ID = os.getenv("SPREADSHEET_ID")
 PHASE1_JSON_FILE_PATH = os.path.join(current_file_path, "data", "phase1.json")
 PHASE2_JSON_FILE_PATH = os.path.join(current_file_path, "data", "phase2.json")
+PHASE2_WITH_SDD_JSON_FILE_PATH = os.path.join(current_file_path, "data", "phase2_with_sdd.json")
 ALL_PHASES_JSON_FILE_PATH = os.path.join(current_file_path, "data", "all_phases.json")
 GOOGLE_DRIVE_CREDENTIALS_PATH = os.getenv("GOOGLE_DRIVE_CREDENTIALS_PATH")
 
