@@ -3,3 +3,6 @@ __pycache__
 oak_venv
 
 data.py
+
+logs/
+*.log
