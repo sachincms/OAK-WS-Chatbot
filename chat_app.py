@@ -22,6 +22,7 @@ logging.basicConfig(
     datefmt='%d/%m/%Y %I:%M:%S %p',
 )
 
+
 st.set_page_config(
     page_title="SPF chatbot",
     page_icon=SPF_LOGO_PATH,
