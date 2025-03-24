@@ -47,6 +47,24 @@ with col2:
         context_options,
     )
 
+if "previous_context" not in st.session_state:
+    st.session_state["previous_context"] = context
+
+if st.session_state["previous_context"] != context:
+
+    st.session_state["chat_history"] = [
+        {"role": "user", "message": DEFAULT_QUERY},
+        {"role": "assistant", "message": DEFAULT_FINAL_RESPONSE},
+    ]
+
+    st.info(f"Changed context from {st.session_state["previous_context"]} to {context}.")
+    
+    st.session_state["previous_context"] = context
+    
+    file = context_options[context]
+    text = json.load(open(file, "r", encoding="utf-8"))
+    st.session_state["oak_data"] = text
+
 try:
     loop = asyncio.get_running_loop()
     loop.close()
@@ -54,20 +72,21 @@ except RuntimeError:
     pass
 
 
-if "oak_data" not in st.session_state:
-    st.session_state["oak_data"] = None
+# if "oak_data" not in st.session_state:
+    # st.session_state["oak_data"] = None
+file = context_options[context]
+text = json.load(open(file, "r", encoding="utf-8"))
+st.session_state["oak_data"] = text
 
 if "chat_history" not in st.session_state:
     st.session_state["chat_history"] = []
 
-if st.session_state["oak_data"] is None:
-    with st.spinner("Loading excel data...."):
-        # text = convert_excel_to_dict(spreadsheet_id = SPREADSHEET_ID,
-        #                                         json_file_path = JSON_FILE_PATH,
-        #                                         gdrive_credentials_path = GOOGLE_DRIVE_CREDENTIALS_PATH)
-        file = context_options[context]
-        text = json.load(open(file, "r", encoding="utf-8"))
-        st.session_state["oak_data"] = text
+# if st.session_state["oak_data"] is None:
+#     with st.spinner("Loading excel data...."):
+#         # text = convert_excel_to_dict(spreadsheet_id = SPREADSHEET_ID,
+#         #                                         json_file_path = JSON_FILE_PATH,
+#         #                                         gdrive_credentials_path = GOOGLE_DRIVE_CREDENTIALS_PATH)
+#         st.session_state["oak_data"] = text
 
 if "chat_container" not in st.session_state:
     st.session_state.chat_container = st.container()
@@ -109,7 +128,8 @@ for chat in st.session_state["chat_history"]:
 
 if st.session_state["chat_history"][-1]["role"] != "assistant":  
     try:
-        response = qa_chat_with_prompt(text = st.session_state.get("oak_data"), query = query)
+
+        response = qa_chat_with_prompt(text = text, query = query)
         answer = response["answer"]
         source = response["source"]
         full_response = f"\n{answer}\n\n**Source:** {source}"
