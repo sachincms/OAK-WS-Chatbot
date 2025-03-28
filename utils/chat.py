@@ -22,15 +22,16 @@ logger = get_logger(__name__)
 
 
 
-def switch_google_api_key(current_index: int, first_attempt:bool = False):
+def switch_google_api_key(current_index: int, first_attempt:bool = False) -> int:
    """
     Switch to the next API key in the list.
     Args:
         current_index (int): The index of the current API key.
+        first_attempt (bool): default is False
     Returns:
         int: The new API key index.
     Raises:
-        IndexError: If all API keys have been exhausted.
+        ValueError: If all API keys have been exhausted.
     """
    # move to the next index 
    # will be reset to 0 once reached the end
@@ -165,7 +166,7 @@ def qa_chat_with_prompt(text: str, query: str) -> dict:
   messages = convert_query_into_chat_message(text = text, 
                                            query = query)
   current_index = 0
-  os.environ["GOOGLE_API_KEY"] = GOOGLE_API_KEYS[current_index]
+
   while True: 
      try:
         api_key = GOOGLE_API_KEYS[current_index]
