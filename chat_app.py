@@ -3,7 +3,7 @@ import streamlit as st
 import sys
 import os
 sys.path.append(os.path.abspath(os.path.dirname(__file__)))
-from utils.chat import qa_chat_with_prompt, stream_data, qa_chat_with_prompt_outparse
+from utils.chat import qa_chat_with_prompt, stream_data
 from utils.image_processing import display_images
 from utils.files_processing import convert_excel_to_dict
 import warnings
@@ -130,8 +130,7 @@ for chat in st.session_state["chat_history"]:
 if st.session_state["chat_history"][-1]["role"] != "assistant":  
     try:
 
-        #response = qa_chat_with_prompt(text = text, query = query)
-        response = qa_chat_with_prompt_outparse(text = text, query = query)
+        response = qa_chat_with_prompt(text = text, query = query)
         answer = response["answer"]
         source = response["source"]
         full_response = f"\n{answer}\n\n**Source:** {source}"
