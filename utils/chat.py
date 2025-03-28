@@ -4,6 +4,8 @@ import openai
 from llama_index.llms.openai import OpenAI
 from llama_index.core import PromptTemplate
 from llama_index.llms.gemini import Gemini
+from llama_index.core.output_parsers import PydanticOutputParser
+from pydantic import BaseModel
 from typing import List
 import numpy as np
 import os
@@ -13,6 +15,7 @@ import nest_asyncio
 from config import *
 from utils.evaluate_chat import *
 import re
+import json
 from typing import Tuple
 from dotenv import load_dotenv
 import time
@@ -25,6 +28,7 @@ nest_asyncio.apply()
 
 logger = get_logger(__name__)
 
+GOOGLE_API_KEYS = [GOOGLE_API_KEY_1, GOOGLE_API_KEY_2]
 
 def switch_google_api_key(current_index: int):
    """
@@ -228,8 +232,12 @@ def qa_chat_with_prompt(text: str, query: str) -> dict:
         llm = Gemini(model = GEMINI_MODEL_NAME)
         resp = llm.chat(messages)  #llama_index.core.base.llms.types.ChatResponse
 
-        result_text = resp.message.blocks[0].text
+        if not resp.message.blocks or not resp.message.blocks[0].text.strip():
+           logger.error("Empty response received from Gemini")
+           return {"query": query, "answer": "ERROR: Empty response received from Gemini", "source": None}
 
+        result_text = resp.message.blocks[0].text
+        logger.info(f"Raw output: {result_text}")
         d = {}
         d["query"] = query
 
@@ -252,6 +260,154 @@ def qa_chat_with_prompt(text: str, query: str) -> dict:
                raise ValueError("All API keys are exhausted or invalid")
         else:
            raise e
+        
+
+####################################### CHAT PROMPT TEMPLATE ALONG WITH OUTPUT PARSER ###############################################
+
+class QAResponse(BaseModel):
+   answer: str
+   source: str
+
+
+def convert_query_into_chat_message_for_outparse(text: str, query: str) -> List[llama_index.core.base.llms.types.ChatMessage]:
+     '''
+    This function converts the input text & query into chat message template
+    Args:
+      Input context text & query
+    Returns:
+      Chat Message template 
+     '''
+     template = (
+        "The following text consists of some context, a question, and some instructions. "
+        "Use the context to answer the question and follow the instructions while doing so."
+        "\n\n----------- Start of Context ----------\n"
+        "{context_str}"
+        "\n----------- End of Context -----------\n"
+
+        "\n\n----------- Start of Question ----------\n"
+        "{query_str}"
+        "\n----------- End of Question ----------\n"
+
+        "When answering, please provide relevant supporting details and cite the specific part of the context where the answer is derived from."
+      "Try to rephrase or summarize the relevant supporting details in your answer instead of using the exact same wording as present in the context."
+      "Make sure your answer responds to the query being asked and does not contain irrelevant information or spelling mistakes."
+      "Your answer should be concise and to the point while including all necessary details."
+      "Try not to use too many bullet points with short sentences, only use them when necessary. You can use bullet points to list out important points or key details."
+      "Your entire answer should not be longer than 500 words."
+        "Please provide your response in **JSON format** with the following fields:\n"
+        "```json\n"
+        "{\n"
+        '  "answer": "<Your concise answer here>",\n'
+        '  "source": "<Plain text reference to where the answer is found>"\n'
+        "}\n"
+        "```\n"
+        "If the answer is not found in the provided context, return:\n"
+        "```json\n"
+        '{ "answer": "Answer not found from the given context provided.", "source": "" }\n'
+        "```\n"
+        "\n----------- End of Instructions -----------\n"
+    )
+
+     qa_template = PromptTemplate(template)
+     messages = qa_template.format_messages(context_str=text, query_str=query)
+     return messages
+
+
+def clean_json_output(result_text: str) -> dict:
+   '''
+    This function converts the raw result from LLM into json
+    Args:
+      result text 
+    Returns:
+      dictionary
+   '''
+   try:
+      json_match = re.search("```json\n(.*?)\n```", result_text, re.DOTALL)
+
+      if json_match:
+         json_text = json_match.group(1)
+      else:
+         json_text = result_text
+
+      return json.loads(json_text)
+   
+   except json.JSONDecodeError as e:
+      logger.error(f"Failed to decode json: {e}")
+      logger.info(f"Raw response: {result_text}")
+      return None
+      
+def format_answer_source(response: dict) -> dict:
+   '''
+    This function formats the answer and source response into string values
+    Args:
+      response  dictionary
+    Returns:
+      formatted dictionary
+   '''
+   formatted_response = {}
+  
+  # format answer into string
+   if isinstance(response["answer"], dict):
+      formatted_response["answer"] = "\n".join([f"{k}: {v}" for k, v in response["answer"].items()])
+   elif isinstance(response["answer"], list):
+      formatted_response["answer"] = "\n".join(response["answer"])
+   else:
+      formatted_response["answer"] = str(response["answer"])
+
+  # format source into string
+   if isinstance(response["source"], dict):
+      formatted_response["source"] = "\n".join([f"{k}: {v}" for k, v in response["source"].items()])
+   elif isinstance(response["source"], list):
+      formatted_response["source"] = "\n".join(response["source"])
+   else:
+      formatted_response["source"] = str(response["source"])
+
+   return formatted_response
+
+
+def qa_chat_with_prompt_outparse(text: str, query: str) -> dict:
+  '''
+  This function returns a dictionary containing answer & source
+  Args:
+    Input context text & query
+  Returns:
+    Dictionary containing query, answer, source
+  '''
+  messages = convert_query_into_chat_message_for_outparse(text = text, 
+                                           query = query)
+  current_index = 0
+  os.environ["GOOGLE_API_KEY"] = GOOGLE_API_KEYS[current_index]
+  while True: 
+     try:
+        llm = Gemini(model = GEMINI_MODEL_NAME)
+        resp = llm.chat(messages)  #llama_index.core.base.llms.types.ChatResponse
+
+        if not resp.message.blocks or not resp.message.blocks[0].text.strip():
+           logger.error("Empty response received from Gemini")
+           return {"query": query, "answer": "ERROR: Empty response received from Gemini", "source": None}
+
+        result_text = resp.message.blocks[0].text
+        json_response = clean_json_output(result_text)
+        formatted_response = format_answer_source(json_response)
+        parsed_response = QAResponse(**formatted_response)
+
+        d = {}
+        d["query"] = query
+        d["answer"] = parsed_response.answer
+        d["source"] = parsed_response.source
+
+        return d
+     
+     except HTTPError as e:
+        if e.response.status_code == 429:
+            try:
+              current_index = switch_google_api_key(current_index)
+              time.sleep(2)
+            except IndexError:
+               raise ValueError("All API keys are exhausted or invalid")
+        else:
+           raise e 
+
 
 def stream_data(response):
     for word in response.split(" "):
