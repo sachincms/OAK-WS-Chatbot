@@ -11,6 +11,10 @@ NODE_THRESHOLD = 0.5
 current_file_path = os.getcwd()
 LOGO_STYLE_HTML = os.path.join(current_file_path, "static",  "html", "logo_style.html")
 
+MONGODB_URI = os.getenv("MONGODB_URI")
+DATABASE = os.getenv("DATABASE_NAME")
+COLLECTION = os.getenv("COLLECTION_NAME")
+
 # OAK_LOGO_PATH = os.path.join(current_file_path, "static",  "images", "Oak.png")
 # CMS_LOGO_PATH = os.path.join(current_file_path, "static",  "images", "CMS.png")
 #TODO: Replace PNG with SVG
