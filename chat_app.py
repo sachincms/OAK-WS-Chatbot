@@ -18,7 +18,7 @@ import json
 
 logging.basicConfig(
     level=logging.INFO,
-    format='%(asctime)s - %(name)s - File: %(filename)s - %(levelname)s - %(message)s', 
+    format='%(asctime)s - %(name)s - File: %(filename)s - Line: %(lineno)d - %(levelname)s - %(message)s', 
     datefmt='%d/%m/%Y %I:%M:%S %p',
 )
 
@@ -132,6 +132,7 @@ if st.session_state["chat_history"][-1]["role"] != "assistant":
 
         #response = qa_chat_with_prompt(text = text, query = query)
         response = qa_chat_with_prompt_outparse(text = text, query = query)
+        logging.info(f"Response Type: {type(response)}")
         answer = response["answer"]
         source = response["source"]
         full_response = f"\n{answer}\n\n**Source:** {source}"
