@@ -2,11 +2,15 @@ import os
 
 # OPENAI_EMBEDDING_MODEL = "text-embedding-3-small"
 # OPENAI_MODEL_NAME = "gpt-3.5-turbo"
-GEMINI_MODEL_NAME = "models/gemini-2.0-flash"
+MODEL_NAME = "models/gemini-2.0-flash"
 EMBED_DIMENSION = 512
 CHUNK_SIZE = 1024
 CHUNK_OVERLAP = 50
 NODE_THRESHOLD = 0.5
+
+GOOGLE_API_KEY_1 = os.getenv("GOOGLE_API_KEY_1")
+GOOGLE_API_KEY_2 = os.getenv("GOOGLE_API_KEY_2")
+API_KEYS = [GOOGLE_API_KEY_1, GOOGLE_API_KEY_2]
 
 current_file_path = os.getcwd()
 LOGO_STYLE_HTML = os.path.join(current_file_path, "static",  "html", "logo_style.html")
@@ -23,10 +27,6 @@ PHASE2_JSON_FILE_PATH = os.path.join(current_file_path, "data", "phase2.json")
 PHASE2_WITH_SDD_JSON_FILE_PATH = os.path.join(current_file_path, "data", "phase2_with_sdd.json")
 ALL_PHASES_JSON_FILE_PATH = os.path.join(current_file_path, "data", "all_phases.json")
 GOOGLE_DRIVE_CREDENTIALS_PATH = os.getenv("GOOGLE_DRIVE_CREDENTIALS_PATH")
-
-GOOGLE_API_KEY_1 = os.getenv("GOOGLE_API_KEY_1")
-GOOGLE_API_KEY_2 = os.getenv("GOOGLE_API_KEY_2")
-GOOGLE_API_KEYS = [GOOGLE_API_KEY_1, GOOGLE_API_KEY_2]
 
 LOGS_DIRECTORY = os.path.join(current_file_path, "logs")
 
