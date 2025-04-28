@@ -1,4 +1,7 @@
 import os
+from dotenv import load_dotenv
+
+load_dotenv()
 
 # OPENAI_EMBEDDING_MODEL = "text-embedding-3-small"
 # OPENAI_MODEL_NAME = "gpt-3.5-turbo"
@@ -14,6 +17,12 @@ API_KEYS = [GOOGLE_API_KEY_1, GOOGLE_API_KEY_2]
 
 current_file_path = os.getcwd()
 LOGO_STYLE_HTML = os.path.join(current_file_path, "static",  "html", "logo_style.html")
+LOGOUT_BUTTON_STYLE = os.path.join(current_file_path, "static",  "html", "logout_button_style.html")
+AUTH_CONTAINER_STYLE = os.path.join(current_file_path, "static",  "html", "auth_container_style.html")
+
+MONGODB_URI = os.getenv("MONGODB_URI")
+SPF_DATABASE = os.getenv("SPF_DATABASE")
+USER_COLLECTION = os.getenv("USER_COLLECTION")
 
 # OAK_LOGO_PATH = os.path.join(current_file_path, "static",  "images", "Oak.png")
 # CMS_LOGO_PATH = os.path.join(current_file_path, "static",  "images", "CMS.png")

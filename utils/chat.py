@@ -6,14 +6,12 @@ from typing import List
 import os
 import llama_index
 import nest_asyncio
-from config import API_KEYS, MODEL_NAME
-from utils.evaluate_chat import *
+from config import GOOGLE_API_KEYS, GEMINI_MODEL_NAME
 import re
 import json
-from typing import Tuple
 from dotenv import load_dotenv
 import time
-from requests.exceptions import HTTPError
+from requests.exceptions import HTTPError, ConnectionError, Timeout
 from logging_config import get_logger
 
 
@@ -22,152 +20,42 @@ nest_asyncio.apply()
 
 logger = get_logger(__name__)
 
-def switch_google_api_key(current_index: int):
+
+def switch_google_api_key(current_index: int, first_attempt:bool = False) -> int:
    """
     Switch to the next API key in the list.
     Args:
         current_index (int): The index of the current API key.
+        first_attempt (bool): default is False
     Returns:
         int: The new API key index.
     Raises:
-        IndexError: If all API keys have been exhausted.
+        ValueError: If all API keys have been exhausted.
     """
-   new_index = current_index + 1
-   if new_index >= len(API_KEYS):
-      raise IndexError("All API keys exhausted.")
+   # move to the next index 
+   # will be reset to 0 once reached the end
+   new_index = (current_index + 1)%len(GOOGLE_API_KEYS)
    
-   new_key = API_KEYS[new_index]
-   os.environ["GOOGLE_API_KEY"] = new_key
-   logger.warning(f"{API_KEYS[current_index]} rate limit exceeded. Switching to {new_key}")
+   if new_index == 0:
+      
+      # stopping condition for recursion
+      if first_attempt: 
+        raise ValueError("All API keys are exhausted")
+      
+      # go into recursive loop....
+      # retries when the new index = 0 but this time first attempt = True
+      # this means its a retry
+      return switch_google_api_key(new_index, first_attempt = True)
+   
+   logger.warning(f"API key {GOOGLE_API_KEYS[current_index]} rate limit exceeded. Switching to {GOOGLE_API_KEYS[new_index]}")
    return new_index
-   
-    
-
-def convert_query_into_chat_message(text: str, query: str) -> List[llama_index.core.base.llms.types.ChatMessage]:
-  '''
-  This function converts the input text & query into chat message template
-  Args:
-    Input context text & query
-  Returns:
-    Chat Message template 
-  '''
-  
-  template = (
-      "The following text consists of some context, a question and some instructions. Use the context to answer the question and follow the instructions while doing so."
-      "\n----------- Start of Context ----------\n"
-      "{context_str}"
-      "\n---------- End of Context -----------\n"
-
-      "\n----------- Start of Question ----------\n"
-      "{query_str}"
-      "\n----------- End of Question ----------\n"
-
-      "\n----------- Start of Instructions ----------\n"
-      "When answering, please provide relevant supporting details and cite the specific part of the context where the answer is derived from."
-      "Try to rephrase or summarize the relevant supporting details in your answer instead of using the exact same wording as present in the context."
-      "Make sure your answer responds to the query being asked and does not contain irrelevant information or spelling mistakes."
-      "Your answer should be concise and to the point while including all necessary details."
-      "Try not to use too many bullet points with short sentences, only use them when necessary. You can use bullet points to list out important points or key details."
-      "Your entire answer should not be longer than 500 words."
-      "Please provide the answer in the following format:\n"
-      "Answer: <Your answer here>\n"
-      "Source: <Reference to relevant part of the context>"
-      "The source should be in plain text, not numbers or any other format. It should be concise and mentioned in few words."
-      "If answer is not found in the provided context then reply exactly with:\n"
-      "'Answer not found from the given context provided.'"
-      "\n----------- End of Instructions ----------\n"
-  )
-  qa_template = PromptTemplate(template)
-
-  messages = qa_template.format_messages(context_str = text, query_str = query)
-  return messages
-
-
-def split_answer_and_sources(text: str) -> Tuple[str, str]:
-  '''
-  This function splits the answer & text from response text
-  Args:
-    response text
-  Returns:
-    answer & source
-  '''
-  pattern1 = r"(.*)\s*\(Source: (.*)\)"
-  pattern2 = r"Answer:\s*(.*)\s*\nSource: (.*)"
-
-  matches = re.findall(pattern1, text, re.DOTALL)
-  if not matches:
-    matches = re.findall(pattern2, text, re.DOTALL)
-
-  answers_list = []
-  sources_list = set()
-
-  for answer, source in matches:
-    answers_list.append(answer.strip())
-
-    for s in source.split(";"):
-      sources_list.add(s.strip())
-
-  final_answer = "\n".join(answers_list)
-  final_answer = final_answer.split("Answer:")[-1]
-  final_source = "\n".join(sorted(sources_list))
-  return final_answer, final_source
-
-
-def qa_chat_with_prompt(text: str, query: str) -> dict:
-  '''
-  This function returns a dictionary containing answer & source
-  Args:
-    Input context text & query
-  Returns:
-    Dictionary containing query, answer, source
-  '''
-  messages = convert_query_into_chat_message(text = text, 
-                                           query = query)
-  current_index = 0
-  while True: 
-     try:
-        llm = Gemini(model=MODEL_NAME, api_key=API_KEYS[current_index])
-        resp = llm.chat(messages)  #llama_index.core.base.llms.types.ChatResponse
-
-        if not resp.message.blocks or not resp.message.blocks[0].text.strip():
-           error_message = "Empty response received from API endpoint."
-           logger.error(error_message)
-           return {"query": query, "answer": f"ERROR: {error_message}", "source": None}
-
-        result_text = resp.message.blocks[0].text
-        logger.info(f"Raw output: {result_text}")
-        d = {}
-        d["query"] = query
-
-        if "Source:" in result_text:
-          answer, source = split_answer_and_sources(result_text)
-          d["answer"] = answer
-          d["source"] = source
-        else:
-          d["answer"] = result_text
-          d["source"] = None
-
-        return d
-     
-     except HTTPError as e:
-        if e.response.status_code == 429:
-            try:
-              current_index = switch_google_api_key(current_index)
-              time.sleep(2)
-            except IndexError:
-               raise ValueError("All API keys are exhausted or invalid")
-        else:
-           raise e
-        
-
-####################################### CHAT PROMPT TEMPLATE ALONG WITH OUTPUT PARSER ###############################################
 
 class QAResponse(BaseModel):
    answer: str
    source: str
 
 
-def convert_query_into_chat_message_for_outparse(text: str, query: str) -> List[llama_index.core.base.llms.types.ChatMessage]:
+def convert_query_into_chat_message(text: str, query: str) -> List[llama_index.core.base.llms.types.ChatMessage]:
      '''
     This function converts the input text & query into chat message template
     Args:
@@ -235,7 +123,8 @@ def clean_json_output(result_text: str) -> dict:
       logger.info(f"Raw response: {result_text}")
       return None
       
-def format_answer_source(response: dict) -> dict:
+
+def format_response(response: dict) -> dict:
    '''
     This function formats the answer and source response into string values
     Args:
@@ -264,7 +153,7 @@ def format_answer_source(response: dict) -> dict:
    return formatted_response
 
 
-def qa_chat_with_prompt_outparse(text: str, query: str) -> dict:
+def qa_chat_with_prompt(text: str, query: str) -> dict:
   '''
   This function returns a dictionary containing answer & source
   Args:
@@ -272,12 +161,15 @@ def qa_chat_with_prompt_outparse(text: str, query: str) -> dict:
   Returns:
     Dictionary containing query, answer, source
   '''
-  messages = convert_query_into_chat_message_for_outparse(text = text, 
+  messages = convert_query_into_chat_message(text = text, 
                                            query = query)
   current_index = 0
+  
   while True: 
      try:
-        llm = Gemini(model=MODEL_NAME, api_key=API_KEYS[current_index])
+        api_key = GOOGLE_API_KEYS[current_index]
+        llm = Gemini(model = GEMINI_MODEL_NAME, api_key = api_key)
+        
         resp = llm.chat(messages)  #llama_index.core.base.llms.types.ChatResponse
 
         if not resp.message.blocks or not resp.message.blocks[0].text.strip():
@@ -286,7 +178,7 @@ def qa_chat_with_prompt_outparse(text: str, query: str) -> dict:
 
         result_text = resp.message.blocks[0].text
         json_response = clean_json_output(result_text)
-        formatted_response = format_answer_source(json_response)
+        formatted_response = format_response(json_response)
         parsed_response = QAResponse(**formatted_response)
 
         d = {}
@@ -301,10 +193,28 @@ def qa_chat_with_prompt_outparse(text: str, query: str) -> dict:
             try:
               current_index = switch_google_api_key(current_index)
               time.sleep(2)
-            except IndexError:
-               raise ValueError("All API keys are exhausted or invalid.")
+              
+            except ValueError:
+               raise ValueError("All API keys are exhausted or invalid")
+            
+        elif e.response.status_code in [501, 502, 503, 504]:
+           logger.error(f"Server error {e.response.status_code}: {e.response.text}")
+           return {"query": query, "answer": f"HTTP ERROR: {e.response.status_code}", "source": None}
+        
+        elif e.response.status_code in [401, 401, 403, 404]:
+           logger.error(f"Client error {e.response.status_code}: {e.response.text}")
+           return {"query": query, "answer": f"HTTP ERROR: {e.response.status_code}", "source": None}
+
         else:
            raise e 
+        
+     except (ConnectionError, Timeout) as e:
+        logger.error(f"Network error: {str(e)}")
+        return {"query": query, "answer": f"ERROR: {str(e)}", "source": None}
+     
+     except Exception as e:
+        logger.error(f"Unexpected error: {str(e)}")
+        return {"query": query, "answer": f"ERROR: {str(e)}", "source": None}
 
 
 def stream_data(response):
