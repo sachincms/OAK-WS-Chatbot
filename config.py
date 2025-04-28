@@ -13,7 +13,7 @@ NODE_THRESHOLD = 0.5
 
 GOOGLE_API_KEY_1 = os.getenv("GOOGLE_API_KEY_1")
 GOOGLE_API_KEY_2 = os.getenv("GOOGLE_API_KEY_2")
-API_KEYS = [GOOGLE_API_KEY_1, GOOGLE_API_KEY_2]
+GOOGLE_API_KEYS = [GOOGLE_API_KEY_1, GOOGLE_API_KEY_2]
 
 current_file_path = os.getcwd()
 LOGO_STYLE_HTML = os.path.join(current_file_path, "static",  "html", "logo_style.html")
