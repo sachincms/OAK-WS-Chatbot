@@ -5,7 +5,7 @@ load_dotenv()
 
 # OPENAI_EMBEDDING_MODEL = "text-embedding-3-small"
 # OPENAI_MODEL_NAME = "gpt-3.5-turbo"
-MODEL_NAME = "models/gemini-2.0-flash"
+GEMINI_MODEL_NAME = "models/gemini-2.0-flash"
 EMBED_DIMENSION = 512
 CHUNK_SIZE = 1024
 CHUNK_OVERLAP = 50
