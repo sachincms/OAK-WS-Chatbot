@@ -1,25 +1,29 @@
 import streamlit as st
-from utils.auth_db import init_db, authenticate_user, add_user, get_user_role, get_all_users, approve_user, promote_user_to_admin, delete_user
+from utils.auth_db import get_user_role, get_all_users, approve_user, promote_user_to_admin, delete_user
 from time import sleep
-
+from config import LOGOUT_BUTTON_STYLE
 
 st.set_page_config(page_title = "manage users", layout = "wide")
 
-# check if logged in
 if "authenticated" not in st.session_state or not st.session_state["authenticated"]:
-    st.error("Please log in first")
+    st.error("Please log in to view this page.")
     st.stop()
 
-# only visible for admin
 if get_user_role(st.session_state["username"]) != "admin":
-    st.error("Access denied. Admins only")
+    st.error("Access denied. Admins only.")
     st.stop()
 
 
-st.title("User management panel")
+st.title("User Management")
+
+with open(LOGOUT_BUTTON_STYLE) as f:
+        st.markdown(f.read(), unsafe_allow_html=True)
+    
+if st.button("Logout", type="primary"):
+    st.session_state["authenticated"] = False
+    st.rerun()
 
 users_df = get_all_users()
-
 
 if not users_df.empty:
     col1, col2, col3, col4, col5, col6 = st.columns([3, 2, 2, 2, 2, 2], border=True)
@@ -43,9 +47,12 @@ if not users_df.empty:
 
         if row["status"] == "pending":
             if col4.button("Approve", key = f"approve_{user_id}"):
-                approve_user(user_id)
-                st.success(f"Approved {row["username"]}")
-                sleep(2)
+                if approve_user(user_id):
+                    st.success(f"Approved {row["username"]}.")
+                else:
+                    st.error(f"Error approving {row['username']}. Please try again.")
+
+                sleep(5)
                 st.rerun()
         else:
             col4.write("-")
