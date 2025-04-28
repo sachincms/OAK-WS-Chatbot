@@ -1,0 +1,43 @@
+<head>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <style>
+        div.stButton > button[kind="primary"] {
+            display: inline-flex;
+            float: right;
+            font-size: 0.3rem;
+            font-weight: 400;
+            color: #fff;
+            background-color: #e34d5c;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            position: fixed; 
+            top: 4rem; 
+            right: 1rem;
+            margin-right: 0;
+            height: 1.5rem;
+            width: 5rem;
+            line-height: 1rem;
+            white-space: nowrap;
+        }
+
+        div.stButton > button[kind="primary"]:hover {
+            color: #fff;             
+            background-color: #a31c29;
+        }
+
+        div.stButton > button[kind="primary"]:focus {
+            color: #fff;
+            background-color: #e34d5c;
+        }
+
+        div.stButton > button[kind="primary"]::before {
+            content: "\f2f5";
+            font-family: "Font Awesome 5 Free";
+            font-weight: 600;
+            margin-right: 0.3rem;
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
