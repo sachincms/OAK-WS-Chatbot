@@ -2,22 +2,21 @@ from config import SPF_LOGO_PATH, SWASTI_LOGO_PATH, DEFAULT_QUERY, DEFAULT_FINAL
 import streamlit as st
 import sys
 import os
-sys.path.append(os.path.abspath(os.path.dirname(__file__)))
-from utils.chat import qa_chat_with_prompt, stream_data
-from utils.image_processing import display_images
-from utils.files_processing import convert_excel_to_dict
-from utils.auth_db import init_db, authenticate_user, add_user, get_user_role, get_all_users, approve_user, promote_user_to_admin, delete_user
 import warnings
 warnings.simplefilter("ignore", ResourceWarning)
 import asyncio
 import logging
 import uuid
+from datetime import datetime
 from streamlit.web.server.websocket_headers import _get_websocket_headers
 from traceloop.sdk import Traceloop
-from time import sleep
 import json
+sys.path.append(os.path.abspath(os.path.dirname(__file__)))
+from utils.chat import qa_chat_with_prompt, stream_data
+from utils.image_processing import display_images
+from utils.auth_db import init_db, authenticate_user, add_user
+from config import LOGOUT_BUTTON_STYLE, AUTH_CONTAINER_STYLE
 from logging_config import get_logger
-import os
 
 logger = get_logger(__name__)
 
@@ -31,45 +30,102 @@ st.set_page_config(
 
 display_images(SWASTI_LOGO_PATH, SPF_LOGO_PATH)
 
-
 init_db()
 
 if "authenticated" not in st.session_state:
     st.session_state["authenticated"] = False
 
+
 if not st.session_state["authenticated"]:
-    login_tab, register_tab = st.tabs(["Login", "Register"])
+    if "login_method" not in st.session_state:
+        st.session_state["login_method"] = "login"
 
-    with login_tab:
-        st.subheader("Login")
-        username = st.text_input("Username")
-        password = st.text_input("Password", type = "password")
-        if st.button("Login"):
-            if authenticate_user(username, password):
-                st.success("Login successful")
-                st.session_state["authenticated"] = True
-                st.session_state["username"] = username
-            else:
-                st.error("Invalid credentials")
+    with open(AUTH_CONTAINER_STYLE) as f:
+        st.markdown(f.read(), unsafe_allow_html=True)
 
-    with register_tab:
-        st.subheader("Register")
-        new_username = st.text_input("New Username")
-        new_password = st.text_input("New Password", type = "password")
-        if st.button("Register"):
-            if add_user(new_username, new_password):
-                st.success("User registered....")
-            else:
-                st.error("Username already exists or error occured")
+    _, col2, _ = st.columns([2, 3, 2])
+
+    if st.session_state["login_method"] == "login":
+        with col2:
+            with st.container(border=True):
+                st.subheader("Login")
+                username = st.text_input("Username")
+                password = st.text_input("Password", type = "password")
+                
+                button_container_1 = st.container()
+                create_col, _, login_col = button_container_1.columns([3, 1, 1])
+
+                with create_col:
+                    if st.button("Create Account"):
+                        st.session_state["login_method"] = "register"
+                        st.rerun()
+
+                with login_col:
+
+                    if st.button("Login", type="primary"):
+                        if authenticate_user(username, password):
+                            st.session_state["authenticated"] = True
+                            st.session_state["username"] = username
+                            st.success("Login successful")
+                            st.rerun()
+                        else:
+                            st.error("Invalid credentials.")
+                
+    
+    if st.session_state["login_method"] == "register":
+        with col2:
+            with st.container(border=True):
+                st.subheader("Register")
+                full_name = st.text_input("Full Name")
+                new_username = st.text_input("New Username")
+                email = st.text_input("Email")
+                new_password = st.text_input("New Password", type = "password")
+                reenter_password = st.text_input("Re-enter Password", type = "password")
+                
+                user_data = {
+                    "full_name": full_name,
+                    "username": new_username,
+                    "email": email,
+                    "password": new_password,
+                    "created_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                }
+
+                button_container_2 = st.container()
+                register_col, back_col = button_container_2.columns(2)
+
+                registration_successful = None
+                with register_col:
+                    if st.button("Register"):
+                        if new_password != reenter_password:
+                            st.error("Passwords do not match.")
+
+                        elif add_user(user_data):
+                            registration_successful = True
+                            
+                        else:
+                            registration_successful = False
+                    
+                if registration_successful:
+                    st.success("User registered. Please wait for admin approval.")
+                elif registration_successful == False:
+                    st.error("Please enter valid details using the following guidelines:\n1. Username must be between 3-20 characters and can only contain alphanumeric characters and underscores.\n2. Passwords must be at least 8 characters long and must contain at least one lowercase letter, one uppercase letter and one digit.\n3. Email address must be in a valid format.") 
+
+                with back_col:
+                    if st.button("Already have an account? Login."):
+                        st.session_state["login_method"] = "login"
+                        st.rerun()
 
 
-
-
-# st.write(INTRO_MESSAGE)
-# st.markdown(INTRO_MARKDOWN, unsafe_allow_html=True)
 
 if st.session_state["authenticated"]:
-    st.write(f"Welcome {st.session_state["username"]}")
+    st.subheader(f"Welcome {st.session_state["username"]}!")
+
+    with open(LOGOUT_BUTTON_STYLE) as f:
+        st.markdown(f.read(), unsafe_allow_html=True)
+    
+    if st.button("Logout", type="primary"):
+        st.session_state["authenticated"] = False
+        st.rerun()
 
 
     context_options = {
@@ -180,8 +236,3 @@ if st.session_state["authenticated"]:
                 "message": ERROR_MESSAGE,
             })
             st.chat_message("assistant").write_stream(stream_data(ERROR_MESSAGE))
-
-
-if st.button("Logout"):
-    st.session_state["authenticated"]= False
-    st.rerun()
