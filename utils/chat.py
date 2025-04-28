@@ -21,7 +21,6 @@ nest_asyncio.apply()
 logger = get_logger(__name__)
 
 
-
 def switch_google_api_key(current_index: int, first_attempt:bool = False) -> int:
    """
     Switch to the next API key in the list.
@@ -50,8 +49,6 @@ def switch_google_api_key(current_index: int, first_attempt:bool = False) -> int
    
    logger.warning(f"API key {GOOGLE_API_KEYS[current_index]} rate limit exceeded. Switching to {GOOGLE_API_KEYS[new_index]}")
    return new_index
-   
-
 
 class QAResponse(BaseModel):
    answer: str
@@ -77,6 +74,7 @@ def convert_query_into_chat_message(text: str, query: str) -> List[llama_index.c
         "{query_str}"
         "\n----------- End of Question ----------\n"
 
+        "\n----------- Start of Instructions ----------\n"
         "When answering, please provide relevant supporting details and cite the specific part of the context where the answer is derived from."
       "Try to rephrase or summarize the relevant supporting details in your answer instead of using the exact same wording as present in the context."
       "Make sure your answer responds to the query being asked and does not contain irrelevant information or spelling mistakes."
@@ -166,11 +164,12 @@ def qa_chat_with_prompt(text: str, query: str) -> dict:
   messages = convert_query_into_chat_message(text = text, 
                                            query = query)
   current_index = 0
-
+  
   while True: 
      try:
         api_key = GOOGLE_API_KEYS[current_index]
         llm = Gemini(model = GEMINI_MODEL_NAME, api_key = api_key)
+        
         resp = llm.chat(messages)  #llama_index.core.base.llms.types.ChatResponse
 
         if not resp.message.blocks or not resp.message.blocks[0].text.strip():
@@ -194,6 +193,7 @@ def qa_chat_with_prompt(text: str, query: str) -> dict:
             try:
               current_index = switch_google_api_key(current_index)
               time.sleep(2)
+              
             except ValueError:
                raise ValueError("All API keys are exhausted or invalid")
             
@@ -204,6 +204,7 @@ def qa_chat_with_prompt(text: str, query: str) -> dict:
         elif e.response.status_code in [401, 401, 403, 404]:
            logger.error(f"Client error {e.response.status_code}: {e.response.text}")
            return {"query": query, "answer": f"HTTP ERROR: {e.response.status_code}", "source": None}
+
         else:
            raise e 
         
