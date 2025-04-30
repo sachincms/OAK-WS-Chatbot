@@ -15,7 +15,7 @@ sys.path.append(os.path.abspath(os.path.dirname(__file__)))
 from utils.chat import qa_chat_with_prompt, stream_data
 from utils.image_processing import display_images
 from utils.auth_db import init_db, authenticate_user, add_user
-from config import LOGOUT_BUTTON_STYLE, AUTH_CONTAINER_STYLE
+from config import LOGOUT_BUTTON_STYLE, AUTH_CONTAINER_STYLE, PROGRESS_REPORT_PARTNERS_PATH, GAF_PATH
 from logging_config import get_logger
 
 logger = get_logger(__name__)
@@ -132,6 +132,8 @@ if st.session_state["authenticated"]:
         "All Phases": ALL_PHASES_JSON_FILE_PATH,
         "Phase 1": PHASE1_JSON_FILE_PATH,
         "Phase 2": PHASE2_WITH_SDD_JSON_FILE_PATH,
+        "Progress Report Partners": PROGRESS_REPORT_PARTNERS_PATH,
+        "Grant Application Form": GAF_PATH
     }
 
     _, col2, _ = st.columns(3)
