@@ -1,3 +1,6 @@
+import os
+import sys
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from config import CASE_STORY_COLLECTION
 from handlers.MongoDBHandler import MongoDBHandler
 from logging_config import get_logger
@@ -30,11 +33,14 @@ def check_case_story_exists(document_type: str,
     return None
 
 
-def store_case_story(case_story: str,
-                    document_type: str,
-                    journal_name: str = None,
-                    partner_name: str = None,
-                    pdf_name: str = None):
+def store_case_story(
+        case_story: str,
+        document_type: str,
+        journal_name: str = None,
+        partner_name: str = None,
+        pdf_name: str = None,
+        overwrite: bool = False
+    ):
     if document_type == "Outcome Journals":
         data = {
             'document_type': document_type,
@@ -51,9 +57,11 @@ def store_case_story(case_story: str,
         }
         query = {'document_type': document_type, 'pdf_name': pdf_name}
 
+    if overwrite:
+        mongodb_handler.insert_data(data)
+        logger.info(f"Inserted case story for {journal_name} and {partner_name} or {pdf_name}")
+        return
+    
     existing_case_story = check_case_story_exists(query)
     if not existing_case_story:
         mongodb_handler.insert_data(data)
-
-
-
