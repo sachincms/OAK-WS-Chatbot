@@ -2,8 +2,6 @@ from typing import List
 from llama_index.core import PromptTemplate
 from llama_index.llms.gemini import Gemini
 from pydantic import BaseModel
-from typing import List
-import os
 import llama_index
 import nest_asyncio
 from config import GOOGLE_API_KEYS, GEMINI_MODEL_NAME
@@ -85,7 +83,7 @@ def convert_query_into_chat_message(text: str, query: str) -> List[llama_index.c
         "```json\n"
         "{\n"
         '  "answer": "<Your concise answer here>",\n'
-        '  "source": "<Plain text reference to where the answer is found>"\n'
+        '  "source": "<Reference to where the answer is found>"\n'
         "}\n"
         "```\n"
         "If the answer is not found in the provided context, return:\n"
@@ -128,7 +126,7 @@ def format_response(response: dict) -> dict:
    '''
     This function formats the answer and source response into string values
     Args:
-      response  dictionary
+      response dictionary
     Returns:
       formatted dictionary
    '''
@@ -195,7 +193,7 @@ def qa_chat_with_prompt(text: str, query: str) -> dict:
               time.sleep(2)
               
             except ValueError:
-               raise ValueError("All API keys are exhausted or invalid")
+               raise ValueError("All API keys are exhausted or invalid.")
             
         elif e.response.status_code in [501, 502, 503, 504]:
            logger.error(f"Server error {e.response.status_code}: {e.response.text}")
