@@ -5,7 +5,7 @@ import sys
 import os
 sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 from config import USER_COLLECTION
-from models.user import UserSchema, validate_user
+from models.user import validate_user
 from handlers.MongoDBHandler import MongoDBHandler
 from logging_config import get_logger
 
