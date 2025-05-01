@@ -101,4 +101,35 @@ SECTION_PATTERNS_FOR_GAF_PDF = {
     "15. Full Name": r"(?:15\.)?\s*Full\s+Name\s+of\s+the\s+person\s+completing\s+the\s+form",
     "16. Date of Submission": r"(?:16\.)?\s*Date\s+of\s+Submission:\s*\(dd/mon/yy\)"
 
-    }
+}
+
+
+OUTCOME_JOURNALS_DICT = {
+    "Phase 1 Journal": "phase1_journal",
+    "Phase 2:  Sundarbans Journal": "phase2_sundarbans_journal",
+    "Phase 2:  Tea Garden Journal": "phase2_tea_garden_journal",
+    "Phase 2:  Migrants and Unorganised Workers Journal": "phase2_migrants_and_unorganised_workrs_journal",
+    "Phase 2:  Indigenous Communities Journal": "phase2_indigenous_communities_journal",
+}
+
+PROGRESS_REPORT_PARTNERS_DICT = {
+    "Association for India's Development": "PR_Association_for_Indias_Development_StrenCommuForesGoverIn_202310310804.pdf",
+    "Dignity Alliance International": "PR_A_Dignity_Alliance_International_SuppoTheMigraResilColla_202310310826.pdf",
+    "Sign of Hope": "PR_A_Sign_of_Hope_StrenTribaVoiceInSunda_202311011310.pdf",
+    "Development Research Communication and Services Centre": "PR_A_Development_Research_Communication_and_Services_Centre_FacilStratPlannAndColla_202310310824.pdf",
+    "SEWA Bharat": "PR_SEWA_Bharat_AssisWomenWorkeInTheUnorg_202311011309.pdf",
+    "Pratham Education Foundation": "PR_A_Pratham_Education_Foundation_VocatTrainForRuralYouth_202311011325.pdf",
+    "National Centre for Advocacy Studies, Pune": "PR_A_National_Centre_for_Advocacy_Studies_Pune_AmpliCommuVoice_202310310923.pdf",
+    "Baikunthapur Tarun Sangha": "PR_A_Baikunthapur_Tarun_Sangha_AmpliCommuVoiceInPatha_202310310807.pdf",
+    "Terre des hommes Lausanne": "PR_Terre_des_hommes_Lausanne_AddreTraffThrouEffecReint_202311011315.pdf",
+    "MUKTI": "PR_A_MUKTI_AmpliCommuVoiceInPatha_202310310917.pdf",
+    "Rupantaran Foundation": "PR_A_Rupantaran_Foundation_AmpliCommuVoice_202311011304.pdf",
+    "IPAS": "PR_A_IPAS_EnhanAgenImprSRH_202310310857.pdf",
+    "New Alipore Praajak Development Society": "PR_A_New_Alipore_Praajak_Development_Society_AmpliCommuVoiceInPatha_202310310929.pdf",
+    "Family Planning Association of India": "PR_A_Family_Planning_Association_of_India_ExpanSexuaReproHealtRight_202310310834.pdf",
+    "Indraprastha Srijan Welfare Society": "PR_A_Indraprastha_Srijan_Welfare_Society_AmpliCommuVoice_202310310853.pdf",
+    "Swaniti Initiative": "PR_A_Swaniti_Initiative_EnsurAccesToSocioAndLabou_202311011313.pdf",
+    "Sanhita": "PR_A_Sanhita_PreveAndRedreOfSexuaHaras_202311011307.pdf",
+    "Nazdeek": "PR_A_Nazdeek__Inc_EnsurAccesToSocioAndLabou_202310310927.pdf",
+    "One Year Progress Report": "One Year Progress Report - UPDATED VERSION_23.1.24.docx"
+}
