@@ -15,7 +15,8 @@ sys.path.append(os.path.abspath(os.path.dirname(__file__)))
 from utils.chat import qa_chat_with_prompt, stream_data
 from utils.image_processing import display_images
 from utils.auth_db import init_db, authenticate_user, add_user
-from config import LOGOUT_BUTTON_STYLE, AUTH_CONTAINER_STYLE, PROGRESS_REPORT_PARTNERS_PATH, GAF_PATH
+from utils.app_components import display_logout_button
+from config import AUTH_CONTAINER_STYLE, PROGRESS_REPORT_PARTNERS_PATH, GAF_PATH
 from logging_config import get_logger
 
 logger = get_logger(__name__)
@@ -120,13 +121,7 @@ if not st.session_state["authenticated"]:
 if st.session_state["authenticated"]:
     st.subheader(f"Welcome {st.session_state["username"]}!")
 
-    with open(LOGOUT_BUTTON_STYLE) as f:
-        st.markdown(f.read(), unsafe_allow_html=True)
-    
-    if st.button("Logout", type="primary"):
-        st.session_state["authenticated"] = False
-        st.rerun()
-
+    display_logout_button()
 
     context_options = {
         "All Phases": ALL_PHASES_JSON_FILE_PATH,
