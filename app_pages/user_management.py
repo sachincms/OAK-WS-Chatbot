@@ -1,9 +1,14 @@
 import streamlit as st
-from utils.auth_db import get_user_role, get_all_users, approve_user, promote_user_to_admin, delete_user
 from time import sleep
-from config import LOGOUT_BUTTON_STYLE
+from utils.auth_db import get_user_role, get_all_users, approve_user, promote_user_to_admin, delete_user
+from utils.app_components import display_logout_button
+from config import LOGOUT_BUTTON_STYLE, SPF_LOGO_PATH
 
-st.set_page_config(page_title = "manage users", layout = "wide")
+st.set_page_config(
+    page_title="User Management",
+    page_icon=SPF_LOGO_PATH,
+    layout="wide",
+)
 
 if "authenticated" not in st.session_state or not st.session_state["authenticated"]:
     st.error("Please log in to view this page.")
@@ -16,22 +21,17 @@ if get_user_role(st.session_state["username"]) != "admin":
 
 st.title("User Management")
 
-with open(LOGOUT_BUTTON_STYLE) as f:
-        st.markdown(f.read(), unsafe_allow_html=True)
-    
-if st.button("Logout", type="primary"):
-    st.session_state["authenticated"] = False
-    st.rerun()
+display_logout_button()    
 
 users_df = get_all_users()
 
 if not users_df.empty:
     col1, col2, col3, col4, col5, col6 = st.columns([3, 2, 2, 2, 2, 2], border=True)
-    col1.markdown("**👤 Username**")
+    col1.markdown("**👤 User Details**")
     col2.markdown("**📋 Role**")
     col3.markdown("**📌 Status**")
     col4.markdown("**✅ Approve**")
-    col5.markdown("**👑 Make Admin**")
+    col5.markdown("**🔝 Make Admin**")
     col6.markdown("**❌ Delete**")
 
     for index, row in users_df.iterrows():
@@ -39,7 +39,7 @@ if not users_df.empty:
         user_id = row["_id"]
 
         with col1:
-            st.write(f"{row["username"]}")
+            st.write(f"{row["full_name"]}, {row["email"]}")
         with col2:
             st.write(f"{row["role"]}")
         with col3:
