@@ -214,7 +214,7 @@ if st.session_state["authenticated"]:
 
     if st.session_state["chat_history"][-1]["role"] != "assistant":  
         try:
-            response = qa_chat_with_prompt(text = text, query = query)
+            response = qa_chat_with_prompt(text = text, query = query, chat_history = st.session_state["chat_history"])
             answer = response["answer"]
             source = response["source"]
             full_response = f"\n{answer}\n\n**Source:** {source}"
