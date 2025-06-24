@@ -1,7 +1,10 @@
 from typing import List
 from llama_index.core import PromptTemplate
+from llama_index.core.base.llms.types import ChatMessage
 from llama_index.llms.gemini import Gemini
 from pydantic import BaseModel
+from typing import List
+import os
 import llama_index
 import nest_asyncio
 from config import GOOGLE_API_KEYS, GEMINI_MODEL_NAME
@@ -17,6 +20,7 @@ load_dotenv()
 nest_asyncio.apply()
 
 logger = get_logger(__name__)
+
 
 
 def switch_google_api_key(current_index: int, first_attempt:bool = False) -> int:
@@ -47,55 +51,69 @@ def switch_google_api_key(current_index: int, first_attempt:bool = False) -> int
    
    logger.warning(f"API key {GOOGLE_API_KEYS[current_index]} rate limit exceeded. Switching to {GOOGLE_API_KEYS[new_index]}")
    return new_index
+   
+
 
 class QAResponse(BaseModel):
    answer: str
    source: str
 
 
-def convert_query_into_chat_message(text: str, query: str) -> List[llama_index.core.base.llms.types.ChatMessage]:
-     '''
-    This function converts the input text & query into chat message template
-    Args:
-      Input context text & query
-    Returns:
-      Chat Message template 
-     '''
-     template = (
-        "The following text consists of some context, a question, and some instructions. "
-        "Use the context to answer the question and follow the instructions while doing so."
-        "\n\n----------- Start of Context ----------\n"
-        "{context_str}"
-        "\n----------- End of Context -----------\n"
+def convert_query_into_chat_message(text: str, 
+                                    query: str,
+                                    chat_history: List[dict] = None) -> List[llama_index.core.base.llms.types.ChatMessage]:
+   '''
+   This function converts the input text & query into chat message template
+   Args:
+   Input context text & query
+   Returns:
+   Chat Message template 
+   '''
+   messages = []
 
-        "\n\n----------- Start of Question ----------\n"
-        "{query_str}"
-        "\n----------- End of Question ----------\n"
+   if chat_history:
+        for chat in chat_history:
+            role = chat.get("role")
+            message = chat.get("message")
+            if role in ["user", "assistant"] and message:
+                messages.append(ChatMessage(role=role, content=message))
 
-        "\n----------- Start of Instructions ----------\n"
-        "When answering, please provide relevant supporting details and cite the specific part of the context where the answer is derived from."
-      "Try to rephrase or summarize the relevant supporting details in your answer instead of using the exact same wording as present in the context."
-      "Make sure your answer responds to the query being asked and does not contain irrelevant information or spelling mistakes."
-      "Your answer should be concise and to the point while including all necessary details."
-      "Try not to use too many bullet points with short sentences, only use them when necessary. You can use bullet points to list out important points or key details."
-      "Your entire answer should not be longer than 500 words."
-        "Please provide your response in **JSON format** with the following fields:\n"
-        "```json\n"
-        "{\n"
-        '  "answer": "<Your concise answer here>",\n'
-        '  "source": "<Reference to where the answer is found>"\n'
-        "}\n"
-        "```\n"
-        "If the answer is not found in the provided context, return:\n"
-        "```json\n"
-        '{ "answer": "Answer not found from the given context provided.", "source": "" }\n'
-        "```\n"
-        "\n----------- End of Instructions -----------\n"
-    )
+   template = (
+      "The following text consists of some context, a question, and some instructions. "
+      "Use the context to answer the question and follow the instructions while doing so."
+      "\n\n----------- Start of Context ----------\n"
+      f"{text}\n"
+      "\n----------- End of Context -----------\n"
 
-     qa_template = PromptTemplate(template)
-     messages = qa_template.format_messages(context_str=text, query_str=query)
-     return messages
+       "\n\n----------- Start of Previous Conversation ----------\n"
+    "You will also be provided with the history of previous messages between the user and the assistant. "
+    "Use this history to maintain coherence, avoid repetition, and build upon prior discussion where relevant.\n"
+    "Note: If the current query depends on something mentioned earlier, be sure to incorporate it.\n"
+    "----------- End of Previous Conversation -----------\n"
+
+
+      "When answering, please provide relevant supporting details and cite the specific part of the context where the answer is derived from."
+   "Try to rephrase or summarize the relevant supporting details in your answer instead of using the exact same wording as present in the context."
+   "Make sure your answer responds to the query being asked and does not contain irrelevant information or spelling mistakes."
+   "Your answer should be concise and to the point while including all necessary details."
+   "Try not to use too many bullet points with short sentences, only use them when necessary. You can use bullet points to list out important points or key details."
+   "Your entire answer should not be longer than 500 words."
+      "Please provide your response in **JSON format** with the following fields:\n"
+      "```json\n"
+      "{\n"
+      '  "answer": "<Your concise answer here>",\n'
+      '  "source": "<Plain text reference to where the answer is found>"\n'
+      "}\n"
+      "```\n"
+      "If the answer is not found in the provided context, return:\n"
+      "```json\n"
+      '{ "answer": "Answer not found from the given context provided.", "source": "" }\n'
+      "```\n"
+      "\n----------- End of Instructions -----------\n"
+   )
+   messages.insert(0, ChatMessage(role="system", content=template))
+   messages.append(ChatMessage(role="user", content=query))
+   return messages
 
 
 def clean_json_output(result_text: str) -> dict:
@@ -107,26 +125,23 @@ def clean_json_output(result_text: str) -> dict:
       dictionary
    '''
    try:
-      json_match = re.search("```json\n(.*?)\n```", result_text, re.DOTALL)
+        # Remove triple backticks and optional 'json' after them
+        cleaned = re.sub(r"```(?:json)?\n?", "", result_text)
+        cleaned = cleaned.strip().strip("`")  # Just in case
 
-      if json_match:
-         json_text = json_match.group(1)
-      else:
-         json_text = result_text
+        return json.loads(cleaned)
 
-      return json.loads(json_text)
-   
    except json.JSONDecodeError as e:
-      logger.error(f"Failed to decode json: {e}")
-      logger.info(f"Raw response: {result_text}")
-      return None
+        logger.error(f"Failed to decode json: {e}")
+        logger.info(f"Raw response: {result_text}")
+        return None
       
 
 def format_response(response: dict) -> dict:
    '''
     This function formats the answer and source response into string values
     Args:
-      response dictionary
+      response  dictionary
     Returns:
       formatted dictionary
    '''
@@ -151,7 +166,9 @@ def format_response(response: dict) -> dict:
    return formatted_response
 
 
-def qa_chat_with_prompt(text: str, query: str) -> dict:
+def qa_chat_with_prompt(text: str, 
+                        query: str,
+                        chat_history: List[dict]) -> dict:
   '''
   This function returns a dictionary containing answer & source
   Args:
@@ -160,14 +177,14 @@ def qa_chat_with_prompt(text: str, query: str) -> dict:
     Dictionary containing query, answer, source
   '''
   messages = convert_query_into_chat_message(text = text, 
-                                           query = query)
+                                           query = query,
+                                           chat_history = chat_history)
   current_index = 0
-  
+
   while True: 
      try:
         api_key = GOOGLE_API_KEYS[current_index]
         llm = Gemini(model = GEMINI_MODEL_NAME, api_key = api_key)
-        
         resp = llm.chat(messages)  #llama_index.core.base.llms.types.ChatResponse
 
         if not resp.message.blocks or not resp.message.blocks[0].text.strip():
@@ -183,7 +200,6 @@ def qa_chat_with_prompt(text: str, query: str) -> dict:
         d["query"] = query
         d["answer"] = parsed_response.answer
         d["source"] = parsed_response.source
-
         return d
      
      except HTTPError as e:
@@ -191,9 +207,8 @@ def qa_chat_with_prompt(text: str, query: str) -> dict:
             try:
               current_index = switch_google_api_key(current_index)
               time.sleep(2)
-              
             except ValueError:
-               raise ValueError("All API keys are exhausted or invalid.")
+               raise ValueError("All API keys are exhausted or invalid")
             
         elif e.response.status_code in [501, 502, 503, 504]:
            logger.error(f"Server error {e.response.status_code}: {e.response.text}")
@@ -202,7 +217,6 @@ def qa_chat_with_prompt(text: str, query: str) -> dict:
         elif e.response.status_code in [401, 401, 403, 404]:
            logger.error(f"Client error {e.response.status_code}: {e.response.text}")
            return {"query": query, "answer": f"HTTP ERROR: {e.response.status_code}", "source": None}
-
         else:
            raise e 
         
