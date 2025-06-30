@@ -147,10 +147,7 @@ SECTION_PATTERNS_FOR_GAF_PDF = {
 
 OUTCOME_JOURNALS_DICT = {
     "Phase 1 Journal": "phase1_journal",
-    "Phase 2:  Sundarbans Journal": "phase2_sundarbans_journal",
-    "Phase 2:  Tea Garden Journal": "phase2_tea_garden_journal",
-    "Phase 2:  Migrants and Unorganised Workers Journal": "phase2_migrants_and_unorganised_workrs_journal",
-    "Phase 2:  Indigenous Communities Journal": "phase2_indigenous_communities_journal",
+    "Phase 2 Journal": "phase2_journal"
 }
 
 PROGRESS_REPORT_PARTNERS_DICT = {
