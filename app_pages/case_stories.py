@@ -234,14 +234,11 @@ if query:= st.chat_input("Ask a question about the case stories."):
                 return "\n".join(context_parts)
 
             query = build_chat_context(chat_history=st.session_state["case_story_chat_history"], context=text) + "\nHere is the new query:\n" + query
-            print(query)
             
             response = qa_chat_with_prompt(text=text, query=query, chat_history=st.session_state["case_story_chat_history"])
-            print(f"\nresponse: {response}")
             answer = response["answer"].strip("```").strip("json").strip('"answer": ')
             answer = answer.strip("{}").strip()
 
-            print(f"\nanswer: {answer}")
 
             with st.chat_message("assistant"):
                 with st.spinner("Thinking..."):
