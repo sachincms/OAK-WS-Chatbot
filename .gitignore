@@ -1,8 +1,11 @@
 .env
 __pycache__
 venv
+.venv
 
 data.py
 
 logs/
 *.log
+
+*.pdf
