@@ -202,6 +202,18 @@ if st.session_state["authenticated"]:
         #     )
         # )
 
+        try:
+            if hasattr(st, 'context') and hasattr(st.context, 'headers'):
+                headers_info = {
+                    "headers_available": True,
+                    "header_count": len(st.context.headers),
+                    "user_agent": str(st.context.headers.get("user-agent", "unknown"))[:100],  # Truncate long values
+                    "session_id": st.session_state.get("session_id", "NULL_SESS")
+                }
+                logging.info(json.dumps({"_type": "set_headers", **headers_info}))
+        except Exception as e:
+            logger.debug(f"Header logging failed: {e}")
+
     if query:= st.chat_input("Ask a question"):
         st.session_state["chat_history"].append({
             "role": "user", 
@@ -214,7 +226,7 @@ if st.session_state["authenticated"]:
 
     if st.session_state["chat_history"][-1]["role"] != "assistant":  
         try:
-            response = qa_chat_with_prompt(text = text, query = query)
+            response = qa_chat_with_prompt(text = text, query = query, chat_history = st.session_state["chat_history"])
             answer = response["answer"]
             source = response["source"]
             full_response = f"\n{answer}\n\n**Source:** {source}"
