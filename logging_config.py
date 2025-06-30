@@ -1,6 +1,5 @@
 import logging
 import os
-from datetime import date
 from config import LOGS_DIRECTORY
 
 
@@ -10,12 +9,12 @@ if not os.path.exists(LOGS_DIRECTORY):
 LOG_FILE_PATH = os.path.join(LOGS_DIRECTORY, "oak_chatbot.log")
 
 
-def get_logger(name):
+def get_logger(name: str) -> logging.Logger:
     logger = logging.getLogger(name)
     logger.setLevel(logging.INFO)
     logger.propagate = False
 
-    basic_formatter = logging.Formatter('%(asctime)s %(levelname)s: %(message)s')
+    basic_formatter = logging.Formatter('%(asctime)s - %(filename)s - %(lineno)s - %(levelname)s: %(message)s')
 
     file_handler = logging.FileHandler(LOG_FILE_PATH, mode = "a")
     file_handler.setLevel(logging.INFO)
