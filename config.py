@@ -47,6 +47,47 @@ DEFAULT_RESPONSE_SOURCE = 'The section describing the experience of women unorga
 DEFAULT_FINAL_RESPONSE = f"\n{DEFAULT_QUERY_RESPONSE}\n\n**Source:** {DEFAULT_RESPONSE_SOURCE}"
 ERROR_MESSAGE = "An error occurred while processing your request. Please try again later."
 
+
+OUTCOME_JOURNALS_DOCUMENT_TYPE = "Outcome Journals"
+PROGRESS_DOCUMENT_TYPE = "Progress Report Partners"
+
+CASE_STORY_PROMPT_TEMPLATE = (
+    "You are a development impact writer. Based on the context below, generate a NEW case story. "
+    "Use a compelling, human-centered tone. Structure it with:\n"
+    '''
+    1. Title (Should capture the transformation)
+
+    2. Context (2-3 lines)
+    Geographic + thematic background
+    Why this story matters
+
+    3. The Problem
+    What issue was being faced?
+    Who was most affected?
+
+    4. The Intervention
+    What did the partner do?
+    Who was involved (community, gov, other actors)?
+    Mention any tools, processes (like participatory planning, legal training, MIS systems, etc.)
+
+    5. Voices from the Ground (Optional)
+    A quote or story from a beneficiary or frontline worker (Only if there is a quote in the provided context. If not, skip this.)
+
+    6. Outcomes / Change Observed
+    Tangible results — behavioural change, system-level changes, impact numbers if any
+
+    7. What’s Next / Sustainability
+    Is the change embedded?
+    What are the next steps or replication ideas?
+    '''
+
+    "DO NOT copy any part of the example used earlier. Only use facts and ideas from the context.\n\n"
+    "----------- CONTEXT -----------\n"
+    "{context_str}\n"
+    "----------- END CONTEXT -----------\n\n"
+    "Start your case story below:"
+)
+
 OUTCOME_JOURNALS_PATH = os.path.join(current_file_path, "data", "outcome_journals.json")
 PROGRESS_REPORT_PARTNERS_PATH = os.path.join(current_file_path, "data", "progress_report_partners.json")
 GAF_PATH = os.path.join(current_file_path, "data", "gaf.json")
@@ -84,7 +125,7 @@ SECTION_PATTERNS_FOR_PRR_WORD = {
     }
 
 SECTION_PATTERNS_FOR_GAF_PDF = {
-      "1. ORGANISATION": r"1\.\s*ORGANISATION",
+    "1. ORGANISATION": r"1\.\s*ORGANISATION",
     "2. CONTACT INFORMATION": r"(?:2\.\s*(CONTACT\s+INFORMATION|Principal\s+Contact)|3\.\s*Signatory\s+Contact)",
     "3. PROJECT OVERVIEW": r"(?:3\.|4\.)\s*PROJECT\s+OVERVIEW",
     "4. GEOGRAPHY": r"(?:\d+\.)?\s*List\s+the\s+major\s+countries\s+where\s+your\s+activities\s+take\s+place\.\s+If\s+this\s+is\s+global\s+(?:policy\s+)?work,\s+list\s+as\s+worldwide:",
