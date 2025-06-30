@@ -19,3 +19,4 @@ python-dotenv==1.1.0
 regex==2024.11.6
 Requests==2.32.3
 streamlit==1.45.1
+traceloop-sdk==0.40.14
