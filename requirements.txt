@@ -1,5 +1,4 @@
 bcrypt==4.3.0
-bson==0.5.10
 docx==0.2.4
 gspread==6.2.1
 gspread_dataframe==4.0.0
