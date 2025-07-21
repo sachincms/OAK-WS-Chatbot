@@ -142,12 +142,14 @@ if st.session_state["authenticated"]:
     if "previous_context" not in st.session_state:
         st.session_state["previous_context"] = context
 
+    chat_key = f"chat_history_{context}"
+
     if st.session_state["previous_context"] != context:
 
-        st.session_state["chat_history"] = [
-            {"role": "user", "message": DEFAULT_QUERY},
-            {"role": "assistant", "message": DEFAULT_FINAL_RESPONSE},
-        ]
+        # st.session_state["chat_history"] = [
+        #     {"role": "user", "message": DEFAULT_QUERY},
+        #     {"role": "assistant", "message": DEFAULT_FINAL_RESPONSE},
+        # ]
 
         st.info(f"Changed context from {st.session_state["previous_context"]} to {context}.")
 
@@ -169,8 +171,14 @@ if st.session_state["authenticated"]:
     text = json.load(open(file, "r", encoding="utf-8"))
     st.session_state["oak_data"] = text
 
-    if "chat_history" not in st.session_state:
-        st.session_state["chat_history"] = []
+    # if "chat_history" not in st.session_state:
+    #     st.session_state["chat_history"] = []
+
+    if chat_key not in st.session_state:
+        st.session_state[chat_key] = [
+            {"role": "user", "message": DEFAULT_QUERY},
+            {"role": "assistant", "message": DEFAULT_FINAL_RESPONSE},
+        ]
 
 
 
@@ -185,10 +193,11 @@ if st.session_state["authenticated"]:
             Traceloop.set_association_properties({"session_id": session_id})
             st.session_state["session_id"] = session_id
 
-            st.session_state["chat_history"] = [
-                {"role": "user", "message": DEFAULT_QUERY},
-                {"role": "assistant", "message": DEFAULT_FINAL_RESPONSE},
-            ]
+            if chat_key not in st.session_state:
+                st.session_state[chat_key] = [
+                    {"role": "user", "message": DEFAULT_QUERY},
+                    {"role": "assistant", "message": DEFAULT_FINAL_RESPONSE},
+                ]
 
         #TODO: _get_websocket_headers is deprecated. Replace it with st.context.headers but even this is not JSON serializable so find a solution.
         # headers = _get_websocket_headers()
@@ -215,32 +224,32 @@ if st.session_state["authenticated"]:
             logger.debug(f"Header logging failed: {e}")
 
     if query:= st.chat_input("Ask a question"):
-        st.session_state["chat_history"].append({
+        st.session_state[chat_key].append({
             "role": "user", 
             "message": query, 
         })
 
-    for chat in st.session_state["chat_history"]:
+    for chat in st.session_state[chat_key]:
         with st.chat_message(chat["role"]):
             st.write(chat["message"])
 
-    if st.session_state["chat_history"][-1]["role"] != "assistant":  
+    if st.session_state[chat_key][-1]["role"] != "assistant":  
         try:
-            response = qa_chat_with_prompt(text = text, query = query, chat_history = st.session_state["chat_history"])
+            response = qa_chat_with_prompt(text = text, query = query, chat_history = st.session_state[chat_key])
             answer = response["answer"]
             source = response["source"]
             full_response = f"\n{answer}\n\n**Source:** {source}"
             with st.chat_message("assistant"):
                 with st.spinner("Thinking..."):
                     st.write_stream(stream_data(full_response))
-                    st.session_state["chat_history"].append({
+                    st.session_state[chat_key].append({
                         "role": "assistant", 
                         "message": full_response, 
                     })
             
         except Exception as e:
             logging.error(e)
-            st.session_state["chat_history"].append({
+            st.session_state[chat_key].append({
                 "role": "assistant",
                 "message": ERROR_MESSAGE,
             })
