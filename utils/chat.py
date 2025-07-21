@@ -224,11 +224,11 @@ def qa_chat_with_prompt(text: str,
         
      except (ConnectionError, Timeout) as e:
         logger.error(f"Network error: {str(e)}")
-        return {"query": query, "answer": f"ERROR: {str(e)}", "source": None}
+        raise e
      
      except Exception as e:
         logger.error(f"Unexpected error: {str(e)}")
-        return {"query": query, "answer": f"ERROR: {str(e)}", "source": None}
+        raise e
 
 
 def stream_data(response):
