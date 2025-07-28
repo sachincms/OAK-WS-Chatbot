@@ -10,7 +10,7 @@ import sys
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from utils.chat import switch_google_api_key
 from utils.files_processing import load_dict_from_json
-from config import GOOGLE_API_KEYS, GEMINI_MODEL_NAME, OUTCOME_JOURNALS_PATH, PROGRESS_REPORT_PARTNERS_PATH, CASE_STORY_PROMPT_TEMPLATE, CASE_STORY_COLLECTION, OUTCOME_JOURNALS_DOCUMENT_TYPE, PROGRESS_DOCUMENT_TYPE
+from config import GOOGLE_API_KEYS, GEMINI_MODEL_NAME, OUTCOME_JOURNALS_PATH, PROGRESS_REPORT_PARTNERS_PATH, CASE_STORY_PROMPT_TEMPLATE, CASE_STORY_ACROSS_ALL_ACTORS_TEMPLATE, CASE_STORY_COLLECTION, OUTCOME_JOURNALS_DOCUMENT_TYPE, PROGRESS_DOCUMENT_TYPE
 from handlers.MongoDBHandler import MongoDBHandler
 from logging_config import get_logger
 
@@ -23,12 +23,14 @@ mongodb_handler = MongoDBHandler(CASE_STORY_COLLECTION)
 def check_case_story_exists(document_type: str,
                             journal_name: str = None,
                             partner_name: str = None,
+                            social_actor_name: str = None,
                             pdf_name: str = None):
     if document_type == OUTCOME_JOURNALS_DOCUMENT_TYPE:
         query = {
             "document_type" : document_type,
             "journal_name": journal_name,
-            "partner_name": partner_name
+            "partner_name": partner_name,
+            "social_actor_name": social_actor_name
         }
     else:
         query = {
@@ -47,6 +49,7 @@ def store_case_story(
         document_type: str,
         journal_name: str = None,
         partner_name: str = None,
+        social_actor_name: str = None,
         pdf_name: str = None,
         overwrite: bool = False
     ):
@@ -55,6 +58,7 @@ def store_case_story(
             'document_type': document_type,
             'journal_name': journal_name,
             'partner_name': partner_name,
+            'social_actor_name': social_actor_name,
             'case_story': case_story
         }
         query = {'document_type': document_type, 'journal_name': journal_name, 'partner_name': partner_name}
@@ -76,7 +80,7 @@ def store_case_story(
         mongodb_handler.insert_data(data)
 
 
-def convert_query_to_prompt(text: str) -> str:
+def convert_query_to_prompt(text: str, social_actor_name: str) -> str:
     '''
     Converts input text into a prompt that can be used in the chat template
     Args: 
@@ -84,13 +88,18 @@ def convert_query_to_prompt(text: str) -> str:
     Returns:
         Prompt Template
     '''
-    prompt = PromptTemplate(CASE_STORY_PROMPT_TEMPLATE)
+    if social_actor_name == "All":
+        prompt_to_be_used = CASE_STORY_ACROSS_ALL_ACTORS_TEMPLATE
+    else:
+        prompt_to_be_used = CASE_STORY_PROMPT_TEMPLATE
+
+    prompt = PromptTemplate(prompt_to_be_used)
     prompt_text = prompt.format(context_str=text)
 
     return prompt_text
 
 
-def convert_query_into_chat(text: str) -> List[ChatMessage]:
+def convert_query_into_chat(text: str, social_actor_name: str) -> List[ChatMessage]:
     '''
     This function converts the prompt text into chat message template
     Args:
@@ -98,11 +107,11 @@ def convert_query_into_chat(text: str) -> List[ChatMessage]:
     Returns:
       Chat Message template 
      '''
-    prompt_text = convert_query_to_prompt(text)
+    prompt_text = convert_query_to_prompt(text, social_actor_name)
     return [ChatMessage(role="user", content=prompt_text)]
 
 
-def generate_case_story(text: str) -> Union[str, None]:
+def generate_case_story(text: str, social_actor_name: str = None) -> Union[str, None]:
     '''
     This function generates case story
     Args:
@@ -110,7 +119,7 @@ def generate_case_story(text: str) -> Union[str, None]:
     Returns:
       case story 
      '''
-    message = convert_query_into_chat(text)
+    message = convert_query_into_chat(text, social_actor_name)
 
     current_index = 0
     while True:
