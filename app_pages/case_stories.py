@@ -71,7 +71,7 @@ def generate_and_display_case_story(document_type: str, identifier_params: dict,
             time.sleep(2)
     else:
         with st.spinner(f"Generating case story for {display_name}..."):
-            case_story = generate_case_story(text=text)
+            case_story = generate_case_story(text = text, social_actor_name = identifier_params["social_actor_name"])
             if case_story:
                 store_case_story(case_story=case_story, document_type=document_type, **identifier_params)
     
@@ -111,25 +111,69 @@ if main_document == OUTCOME_JOURNALS_DOCUMENT_TYPE:
         
 
         if select_partner:
-            identifier_params={
-                "journal_name": journal,
-                "partner_name": select_partner
-            }
 
-            case_story_identifier = get_case_story_identifier(identifier_params)
+            generation_mode = st.radio("Choose case story generation mode:", 
+                                       options = ["By social actor", "All text"],
+                                       index = 0)
+            
+            if generation_mode == "By social actor":
+                
+                #list of all social actors
+                social_actors = []
+                for i in range(0, len(json_data[journal][select_partner])):
+                    social_actors.append(json_data[journal][select_partner][i]["(Social actor - individual, groups, institutions, networks, community, organisation)"])
 
-            if case_story_identifier != st.session_state["last_case_story_rendered"]:
-                st.session_state["case_story_chat_history"] = []
-                st.session_state["initial_case_story_rendered"] = False
+                select_social_actor = st.selectbox("Select social actor", options = social_actors, index = None)
+                
+                if select_social_actor:
+                    identifier_params={
+                        "journal_name": journal,
+                        "partner_name": select_partner,
+                        "social_actor_name": select_social_actor
+                    }   
 
-            text = json_data[journal][select_partner]
+                    case_story_identifier = get_case_story_identifier(identifier_params)
 
-            generate_and_display_case_story(
-                document_type=OUTCOME_JOURNALS_DOCUMENT_TYPE,
-                identifier_params=identifier_params,
-                text=text,
-                display_name=select_partner
-            )
+                    if case_story_identifier != st.session_state["last_case_story_rendered"]:
+                        st.session_state["case_story_chat_history"] = []
+                        st.session_state["initial_case_story_rendered"] = False
+
+                    #find the text for that social actor
+                    text = None
+                    index = None
+                    for i in range(0, len(json_data[journal][select_partner])):
+                        if json_data[journal][select_partner][i]["(Social actor - individual, groups, institutions, networks, community, organisation)"] == select_social_actor:
+                            index = i
+                            break
+                    text = json_data[journal][select_partner][index]
+
+                    generate_and_display_case_story(
+                        document_type=OUTCOME_JOURNALS_DOCUMENT_TYPE,
+                        identifier_params=identifier_params,
+                        text=text,
+                        display_name=select_partner
+                    )
+            else:
+                identifier_params={
+                        "journal_name": journal,
+                        "partner_name": select_partner,
+                        "social_actor_name": "All"
+                    } 
+                case_story_identifier = get_case_story_identifier(identifier_params)
+
+                if case_story_identifier != st.session_state["last_case_story_rendered"]:
+                    st.session_state["case_story_chat_history"] = []
+                    st.session_state["initial_case_story_rendered"] = False
+
+                text = json_data[journal][select_partner] 
+
+                generate_and_display_case_story(
+                    document_type=OUTCOME_JOURNALS_DOCUMENT_TYPE,
+                    identifier_params=identifier_params,
+                    text=text,
+                    display_name=select_partner
+                )
+                
 
 
 
