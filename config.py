@@ -88,6 +88,15 @@ CASE_STORY_PROMPT_TEMPLATE = (
     "Start your case story below:"
 )
 
+CASE_STORY_ACROSS_ALL_ACTORS_TEMPLATE = (
+    "You are a development impact writer. "
+    "Using only the information provided in the context below, craft a comprehensive case story that captures key outcomes, changes, and impact across all social actors. "
+    "Do not include any assumptions or fabricated details."
+     "----------- CONTEXT -----------\n"
+    "{context_str}\n"
+    "----------- END CONTEXT -----------\n\n"
+)
+
 OUTCOME_JOURNALS_PATH = os.path.join(current_file_path, "data", "outcome_journals.json")
 PROGRESS_REPORT_PARTNERS_PATH = os.path.join(current_file_path, "data", "progress_report_partners.json")
 GAF_PATH = os.path.join(current_file_path, "data", "gaf.json")
